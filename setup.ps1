@@ -1,3 +1,9 @@
+<# Run Script
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/mikepruett3/7ca6518051383ee14f9cf8ae63ba18a7/raw/shell-setup.ps1'))"
+
+#>
+
+
 <#
 .SYNOPSIS
     Script to setup a new installation of windows.
