@@ -10,14 +10,51 @@
     Last Updated: March 16th, 2025
 #>
 
-# Show verbose messages for debugging
-$VerbosePreference = "Continue"
+BackgroundColor
+Specifies the background color. There is no default. The acceptable values for this parameter are:
+
+Black
+DarkBlue
+DarkGreen
+DarkCyan
+DarkRed
+DarkMagenta
+DarkYellow
+Gray
+DarkGray
+Blue
+Green
+Cyan
+Red
+Magenta
+Yellow
+White
+
+-ForegroundColor
+Specifies the text color. There is no default. The acceptable values for this parameter are:
+
+Black
+DarkBlue
+DarkGreen
+DarkCyan
+DarkRed
+DarkMagenta
+DarkYellow
+Gray
+DarkGray
+Blue
+Green
+Cyan
+Red
+Magenta
+Yellow
+White
 
 # Install an app using WinGet Package Manager
 function Install-WinGetApp {
     param ( [string]$Package )
 
-    Write-Verbose -Message "Preparing to install $Package using WinGet"
+    Write-Host "Preparing to install $Package using WinGet" -ForegroundColor DarkGreen -BackgroundColor White
 
     # Check if the package is already installed
     if (Get-AppPackage -Name $Package) {
