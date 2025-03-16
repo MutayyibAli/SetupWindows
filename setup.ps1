@@ -1,9 +1,3 @@
-<# Run Script
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/mikepruett3/7ca6518051383ee14f9cf8ae63ba18a7/raw/shell-setup.ps1'))"
-
-#>
-
-
 <#
 .SYNOPSIS
     Script to setup a new installation of windows.
@@ -62,7 +56,7 @@ function Install-ChocoApp {
     param ( [string]$Package )
 
     Write-Verbose -Message "Preparing to install $Package using Chocolatey"
-    
+
     $listApp = choco list --local $Package
     if ($listApp -like "0 packages installed.") {
         Write-Verbose -Message "Installing $Package"
@@ -684,3 +678,8 @@ if (!$wslInstalled) {
 Install-WinGetApp -PackageID Canonical.Ubuntu.2204
 Write-Output "Install complete! Please reboot your machine/worksation!"
 Start-Sleep -Seconds 10
+
+<# Run Script
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/mikepruett3/7ca6518051383ee14f9cf8ae63ba18a7/raw/shell-setup.ps1'))"
+
+#>
