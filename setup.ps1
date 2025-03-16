@@ -10,8 +10,6 @@ PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.
 .DESCRIPTION
     Script uses Winget, Scoop, and Chocolatey to install applications.
 .NOTES
-    **NOTE** Will configure the Execution Policy for the "CurrentUser" to Unrestricted.
-
     Author: Mutayyib Ali
     Date: March 16th, 2025
 
@@ -21,49 +19,56 @@ PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.
 # Show verbose messages for debugging
 $VerbosePreference = "Continue"
 
-# Install WinGet Package Manager
-function Install-WinGet {
-    param (
-        [string]$PackageID
-    )
-    Write-Verbose -Message "Preparing to install $PackageID"
-    # Added accept options based on this issue - https://github.com/microsoft/winget-cli/issues/1559
-    #$listApp = winget list --exact -q $PackageID --accept-source-agreements
-    #if (winget list --exact --id "$PackageID" --accept-source-agreements) {
-    #    Write-Verbose -Message "Package $PackageID already installed! Skipping..."
-    #} else {
-    #    Write-Verbose -Message "Installing $Package"
-    #    winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements
-    #}
-    Write-Verbose -Message "Installing $Package"
-    winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements
-}
+# Install an app using WinGet Package Manager
+function Install-WinGetApp {
+    param ( [string]$Package )
 
-# Install Scoop Package Manager
-function Install-Scoop {
-    param (
-        [string]$Package
-    )
-    Write-Verbose -Message "Preparing to install $Package"
-    if (! (scoop info $Package).Installed ) {
+    Write-Verbose -Message "Preparing to install $Package using WinGet"
+
+    # Check if the package is already installed
+    if (Get-AppPackage -Name $Package) {
+        Write-Verbose -Message "$Package already installed! Skipping..."
+    }
+    else {
         Write-Verbose -Message "Installing $Package"
-        scoop install $Package
-    } else {
-        Write-Verbose -Message "Package $Package already installed! Skipping..."
+
+        winget install --id "$Package" --exact --accept-source-agreements --accept-package-agreements
+        # Options for winget install command
+        # --silent                      : To suppress the installation dialog
+        # --exact                       : To install the exact package specified
+        # --accept-package-agreements   : To accept the package agreements without prompting
+        # --accept-source-agreements    : To accept the source agreements without prompting
     }
 }
 
-# Install Chocolatey Package Manager
-function Install-Choco {
-    param (
-        [string]$Package
-    )
-    Write-Verbose -Message "Preparing to install $Package"
+# Install an app with Scoop Package Manager
+function Install-ScoopApp {
+    param ( [string]$Package )
+
+    Write-Verbose -Message "Preparing to install $Package using Scoop"
+
+    if ((scoop info $Package).Installed ) {
+        Write-Verbose -Message "$Package already installed! Skipping..."
+    }
+    else {
+        Write-Verbose -Message "Installing $Package"
+        scoop install $Package
+        # Options for scoop install command
+    }
+}
+
+# Install an app with Chocolatey Package Manager
+function Install-ChocoApp {
+    param ( [string]$Package )
+
+    Write-Verbose -Message "Preparing to install $Package using Chocolatey"
+    
     $listApp = choco list --local $Package
     if ($listApp -like "0 packages installed.") {
         Write-Verbose -Message "Installing $Package"
-        Start-Process -FilePath "PowerShell" -ArgumentList "choco","install","$Package","-y" -Verb RunAs -Wait
-    } else {
+        Start-Process -FilePath "PowerShell" -ArgumentList "choco", "install", "$Package", "-y" -Verb RunAs -Wait
+    }
+    else {
         Write-Verbose -Message "Package $Package already installed! Skipping..."
     }
 }
@@ -79,7 +84,7 @@ function Extract-Download {
     }
     if (Test-Path -Path "$File" -PathType Leaf) {
         switch ($File.Split(".") | Select-Object -Last 1) {
-            "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x","-op'$Folder'","-y","$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
+            "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x", "-op'$Folder'", "-y", "$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
             "zip" { 7z x -o"$Folder" -y "$File" | Out-Null }
             "7z" { 7z x -o"$Folder" -y "$File" | Out-Null }
             "exe" { 7z x -o"$Folder" -y "$File" | Out-Null }
@@ -95,7 +100,8 @@ function Download-CustomApp {
     )
     if ((curl -sIL "$Link" | Select-String -Pattern "Content-Disposition") -ne $Null) {
         $Package = $(curl -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" | Select-Object -Last 1).Trim('"')
-    } else {
+    }
+    else {
         $Package = $Link.split("/") | Select-Object -Last 1
     }
     Write-Verbose -Message "Preparing to download $Package"
@@ -116,7 +122,8 @@ function Install-CustomApp {
                 New-Item -Path "$Env:UserProfile\bin\$Folder" -ItemType Directory | Out-Null
             }
             Extract-Download -Folder "$Env:UserProfile\bin\$Folder" -File "$Env:UserProfile\Downloads\$Package"
-        } else {
+        }
+        else {
             Extract-Download -Folder "$Env:UserProfile\bin\" -File "$Env:UserProfile\Downloads\$Package"
         }
         Remove-Item -Path "$Env:UserProfile\Downloads\$Package"
@@ -139,7 +146,7 @@ function Remove-InstalledApp {
         [string]$Package
     )
     Write-Verbose -Message "Uninstalling: $Package"
-    Start-Process -FilePath "PowerShell" -ArgumentList "Get-AppxPackage","-AllUsers","-Name","'$Package'" -Verb RunAs -WindowStyle Hidden
+    Start-Process -FilePath "PowerShell" -ArgumentList "Get-AppxPackage", "-AllUsers", "-Name", "'$Package'" -Verb RunAs -WindowStyle Hidden
 }
 
 function Enable-Bucket {
@@ -149,7 +156,8 @@ function Enable-Bucket {
     if (!($(scoop bucket list).Name -eq "$Bucket")) {
         Write-Verbose -Message "Adding Bucket $Bucket to scoop..."
         scoop bucket add $Bucket
-    } else {
+    }
+    else {
         Write-Verbose -Message "Bucket $Bucket already added! Skipping..."
     }
 }
@@ -157,7 +165,7 @@ function Enable-Bucket {
 # Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
 if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
     Write-Verbose -Message "Setting Execution Policy for Current User..."
-    Start-Process -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy","-Scope","CurrentUser","-ExecutionPolicy","Unrestricted","-Force" -Verb RunAs -Wait
+    Start-Process -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy", "-Scope", "CurrentUser", "-ExecutionPolicy", "Unrestricted", "-Force" -Verb RunAs -Wait
     Write-Output "Restarting/Re-Run script!!!"
     # TODO Auto Restart Script
     Start-Sleep -Seconds 10
@@ -169,7 +177,7 @@ if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
 #$hasPackageManager = Get-AppPackage -name "Microsoft.DesktopAppInstaller"
 if (!(Get-AppPackage -name "Microsoft.DesktopAppInstaller")) {
     Write-Verbose -Message "Installing WinGet..."
-@'
+    @'
 # Set URL and Enable TLSv12
 $releases_url = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -460,7 +468,7 @@ if ($HomeWorkstation) {
 }
 
 # Custom WinGet install for VSCode
-winget install Microsoft.VisualStudioCode --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
+winget install Microsoft.VisualStudioCode --override '/ SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
 
 # Install Chocolatey Packages
 $Choco = @(
@@ -477,26 +485,26 @@ foreach ($item in $Choco) {
 # Install Steam Applications
 if ($HomeWorkstation) {
     # Get Steam AppID's from https://steamdb.info/
-    # https://developer.valvesoftware.com/wiki/Command_Line_Options#Steam_.28Windows.29
-    $SteamDB = @(
-        "1026460" #Lossless Scaling Demo,
-        "431960"  #Wallpaper Engine,
-        "388080"  #Borderless Gaming,
-        "367670"  #Controller Companion,
-        "227260"  #DisplayFusion,
-        "274920"  #FaceRig
-    )
-    # Collect installed Steam AppID's
-    $InstalledIDs = [System.Collections.ArrayList]::new()
-    foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
-        [void]$InstalledIDs.Add((Get-Content -Path $item))
+# https://developer.valvesoftware.com/wiki/Command_Line_Options#Steam_.28Windows.29
+$SteamDB = @(
+    "1026460" #Lossless Scaling Demo,
+    "431960"  #Wallpaper Engine,
+    "388080"  #Borderless Gaming,
+    "367670"  #Controller Companion,
+    "227260"  #DisplayFusion,
+    "274920"  #FaceRig
+)
+# Collect installed Steam AppID's
+$InstalledIDs = [System.Collections.ArrayList]::new()
+foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
+    [void]$InstalledIDs.Add((Get-Content -Path $item))
+}
+# Install Steam AppID, if not already installed
+foreach ($item in $SteamDB) {
+    if ($item -ne $InstalledIDs) {
+        Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch", "$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
     }
-    # Install Steam AppID, if not already installed
-    foreach ($item in $SteamDB) {
-        if ($item -ne $InstalledIDs) {
-            Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
-        }
-    }
+}
 }
 
 # Create Symbolic Links
@@ -603,9 +611,9 @@ if (!(Test-Path -Path "$Env:UserProfile\go\" -PathType Container)) {
 # Customize DOS/PowerShell Environment
 Write-Verbose -Message "Customize DOS/PowerShell Environment..."
 if ((Get-ItemProperty -Path "HKCU:\Software\Microsoft\Command Processor").AutoRun -eq $Null) {
-    Start-Process -FilePath "cmd" -ArgumentList "/c","clink","autorun","install" -Wait -WindowStyle Hidden
+    Start-Process -FilePath "cmd" -ArgumentList "/c", "clink", "autorun", "install" -Wait -WindowStyle Hidden
 }
-Start-Process -FilePath "cmd" -ArgumentList "/c","concfg","import","solarized-dark" -Verb RunAs -Wait
+Start-Process -FilePath "cmd" -ArgumentList "/c", "concfg", "import", "solarized-dark" -Verb RunAs -Wait
 
 # Install Visual Studio Code Integrations
 #if (!(Get-Item -Path "HKCU:\Software\Classes\Directory\shell\Open with &Code" -ErrorAction Ignore)) {
@@ -618,20 +626,20 @@ Start-Process -FilePath "cmd" -ArgumentList "/c","concfg","import","solarized-da
 #Start-Process -FilePath "PowerShell" -ArgumentList "syspin","'$Env:AppData\Microsoft\Windows\Start Menu\Programs\System Tools\Run.lnk'","c:5386" -Wait -NoNewWindow
 # Pin Google Chrome to Taskbar
 Write-Verbose -Message "Pin Google Chrome to Taskbar..."
-Start-Process -FilePath "PowerShell" -ArgumentList "syspin","'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Google Chrome.lnk'","c:5386" -Wait -NoNewWindow
+Start-Process -FilePath "PowerShell" -ArgumentList "syspin", "'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Google Chrome.lnk'", "c:5386" -Wait -NoNewWindow
 
 # Install my PowerShell dot files
 if (!(Test-Path -Path "$Env:UserProfile\dotposh" -PathType Container)) {
     Write-Verbose -Message "Install my PowerShell dot files..."
-    Start-Process -FilePath "PowerShell" -ArgumentList "git","clone","https://github.com/mikepruett3/dotposh.git","$Env:UserProfile\dotposh" -Wait -NoNewWindow
-@'
+    Start-Process -FilePath "PowerShell" -ArgumentList "git", "clone", "https://github.com/mikepruett3/dotposh.git", "$Env:UserProfile\dotposh" -Wait -NoNewWindow
+    @'
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell -ItemType Directory -ErrorAction Ignore
 Remove-Item -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -Force
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -ItemType SymbolicLink -Target $Env:UserProfile\dotposh\profile.ps1
 '@ > $Env:Temp\dotposh.ps1
     Start-Process -FilePath "PowerShell" -ArgumentList "$Env:Temp\dotposh.ps1" -Verb RunAs -Wait -WindowStyle Hidden
     Remove-Item -Path $Env:Temp\dotposh.ps1 -Force
-@'
+    @'
 cd $Env:UserProfile\dotposh
 git submodule init
 git submodule update
@@ -642,13 +650,13 @@ git submodule update
 
 # Pin PowerShell to Taskbar
 Write-Verbose -Message "Pin PowerShell to Taskbar..."
-Start-Process -FilePath "PowerShell" -ArgumentList "syspin","'$Env:AppData\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows PowerShell.lnk'","c:5386" -Wait -NoNewWindow
+Start-Process -FilePath "PowerShell" -ArgumentList "syspin", "'$Env:AppData\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows PowerShell.lnk'", "c:5386" -Wait -NoNewWindow
 
 # Install PowerShell 7
 $PS7 = winget list --exact -q Microsoft.PowerShell
 if (!$PS7) {
     Write-Verbose -Message "Installing PowerShell 7..."
-@'
+    @'
 iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
 '@ > $Env:Temp\ps7.ps1
     Start-Process -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Verb RunAs -Wait -WindowStyle Hidden
@@ -656,7 +664,7 @@ iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
 }
 # Pin PowerShell 7 to Taskbar
 Write-Verbose -Message "Pin PowerShell 7 to Taskbar..."
-Start-Process -FilePath "PowerShell" -ArgumentList "syspin","'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\PowerShell\PowerShell 7 (x64).lnk'","c:5386" -Wait -NoNewWindow
+Start-Process -FilePath "PowerShell" -ArgumentList "syspin", "'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\PowerShell\PowerShell 7 (x64).lnk'", "c:5386" -Wait -NoNewWindow
 
 # Remove unused Packages/Applications
 Write-Verbose -Message "Removing Unused Applications..."
@@ -671,7 +679,7 @@ foreach ($item in $RemoveApps) {
 $wslInstalled = Get-Command "wsl" -CommandType Application -ErrorAction Ignore
 if (!$wslInstalled) {
     Write-Verbose -Message "Installing Windows SubSystems for Linux..."
-    Start-Process -FilePath "PowerShell" -ArgumentList "wsl","--install" -Verb RunAs -Wait -WindowStyle Hidden
+    Start-Process -FilePath "PowerShell" -ArgumentList "wsl", "--install" -Verb RunAs -Wait -WindowStyle Hidden
 }
 Install-WinGetApp -PackageID Canonical.Ubuntu.2204
 Write-Output "Install complete! Please reboot your machine/worksation!"
