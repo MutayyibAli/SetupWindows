@@ -10,65 +10,57 @@
     Last Updated: March 16th, 2025
 #>
 
-BackgroundColor
-Specifies the background color. There is no default. The acceptable values for this parameter are:
+# Setup global variables
+$width = (Get-Host).UI.RawUI.MaxWindowSize.Width
 
-Black
-DarkBlue
-DarkGreen
-DarkCyan
-DarkRed
-DarkMagenta
-DarkYellow
-Gray
-DarkGray
-Blue
-Green
-Cyan
-Red
-Magenta
-Yellow
-White
+# Print a line on the console for a new section
+function New-Section {
+    for ($i = 1; $i -le $width; $i++) {
+        Write-Host "=" -NoNewline -ForegroundColor Yellow -BackgroundColor DarkRed
+    }
+    Write-Host ""
+}
 
--ForegroundColor
-Specifies the text color. There is no default. The acceptable values for this parameter are:
+# Print a line on the console for a new step
+function New-Step {
+    for ($i = 1; $i -le $width; $i++) {
+        Write-Host "-" -NoNewline -ForegroundColor Cyan -BackgroundColor DarkBlue
+    }
+    Write-Host ""
+}
 
-Black
-DarkBlue
-DarkGreen
-DarkCyan
-DarkRed
-DarkMagenta
-DarkYellow
-Gray
-DarkGray
-Blue
-Green
-Cyan
-Red
-Magenta
-Yellow
-White
-
+# Print a line on the console between sub-steps
+function New-SubStep {
+    for ($i = 1; $i -le $width; $i++) {
+        Write-Host "-" -NoNewline -ForegroundColor Cyan -BackgroundColor DarkBlue
+    }
+    Write-Host ""
+}
 # Install an app using WinGet Package Manager
 function Install-WinGetApp {
     param ( [string]$Package )
 
-    Write-Host "Preparing to install $Package using WinGet" -ForegroundColor DarkGreen -BackgroundColor White
+    New-Step
+    Write-Host "Preparing to install " -ForegroundColor Black -BackgroundColor White -NoNewline
+    Write-Host "$Package" -ForegroundColor Blue -BackgroundColor White -NoNewline
+    Write-Host " using WinGet" -ForegroundColor Black -BackgroundColor White
+    New-SubStep
 
     # Check if the package is already installed
     if (Get-AppPackage -Name $Package) {
-        Write-Verbose -Message "$Package already installed! Skipping..."
+        Write-Host "$Package already installed! Skipping..."
+        New-Step
     }
     else {
-        Write-Verbose -Message "Installing $Package"
-
-        winget install --id "$Package" --exact --accept-source-agreements --accept-package-agreements
+        Write-Host "Installing $Package"
+        New-SubStep
+        winget install --id "$Package" --silent --exact --accept-source-agreements --accept-package-agreements
         # Options for winget install command
         # --silent                      : To suppress the installation dialog
         # --exact                       : To install the exact package specified
         # --accept-package-agreements   : To accept the package agreements without prompting
         # --accept-source-agreements    : To accept the source agreements without prompting
+        New-Step
     }
 }
 
@@ -76,15 +68,49 @@ function Install-WinGetApp {
 function Install-ScoopApp {
     param ( [string]$Package )
 
-    Write-Verbose -Message "Preparing to install $Package using Scoop"
-
+    New-Step
+    Write-Host "Preparing to install " -ForegroundColor Black -BackgroundColor White -NoNewline
+    Write-Host "$Package" -ForegroundColor Blue -BackgroundColor White -NoNewline
+    Write-Host " using Scoop" -ForegroundColor Black -BackgroundColor White
+    New-SubStep
     if ((scoop info $Package).Installed ) {
-        Write-Verbose -Message "$Package already installed! Skipping..."
+        Write-Host -Message "$Package already installed! Skipping..."
+        New-Step
     }
     else {
-        Write-Verbose -Message "Installing $Package"
+        Write-Host "Installing $Package"
+        New-SubStep
         scoop install $Package
         # Options for scoop install command
+        
+        New-Step
+    }
+}
+
+# Install an app with Scoop Package Manager with Bucket
+function Install-ScoopAppWithBucket {
+    param ( [string]$Bucket, [string]$Package )
+
+    New-Step
+    Write-Host "Preparing to install " -ForegroundColor Black -BackgroundColor White -NoNewline
+    Write-Host "$Package" -ForegroundColor Blue -BackgroundColor White -NoNewline
+    Write-Host " using Scoop" -ForegroundColor Black -BackgroundColor White
+    New-SubStep
+    if ((scoop info $Package).Installed ) {
+        Write-Host -Message "$Package already installed! Skipping..."
+        New-Step
+    }
+    else {
+        Write-Host "Adding $Bucket"
+        New-SubStep
+        scoop bucket add $Bucket
+        New-SubStep
+        Write-Host "Installing $Package"
+        New-SubStep
+        scoop install $Package
+        # Options for scoop install command
+        
+        New-Step
     }
 }
 
@@ -92,179 +118,367 @@ function Install-ScoopApp {
 function Install-ChocoApp {
     param ( [string]$Package )
 
-    Write-Verbose -Message "Preparing to install $Package using Chocolatey"
+    New-Step
+    Write-Host "Preparing to install " -ForegroundColor Black -BackgroundColor White -NoNewline
+    Write-Host "$Package" -ForegroundColor Blue -BackgroundColor White -NoNewline
+    Write-Host " using Chocolatey" -ForegroundColor Black -BackgroundColor White
+    New-SubStep
 
-    $listApp = choco list --local $Package
-    if ($listApp -like "0 packages installed.") {
-        Write-Verbose -Message "Installing $Package"
-        Start-Process -FilePath "PowerShell" -ArgumentList "choco", "install", "$Package", "-y" -Verb RunAs -Wait
+    $listApp = choco list
+    if ($listApp -match $Package) {
+        Write-Host "Package $Package already installed! Skipping..."
+        New-Step
     }
     else {
-        Write-Verbose -Message "Package $Package already installed! Skipping..."
+        Write-Host "Installing $Package"
+        New-SubStep
+        choco install $package --yes --ignore-checksums
+        # Options for choco install command
+        # --yes                         : To automatically answer yes to all prompts
+        # --ignore-checksums            : To ignore checksums when downloading packages
+        New-Step
     }
 }
 
-function Extract-Download {
-    param (
-        [string]$Folder,
-        [string]$File
-    )
-    if (!(Test-Path -Path "$Folder" -PathType Container)) {
-        Write-Error "$Folder does not exist!!!"
-        Break
+# function Extract-Download {
+#     param (
+#         [string]$Folder,
+#         [string]$File
+#     )
+#     if (!(Test-Path -Path "$Folder" -PathType Container)) {
+#         Write-Error "$Folder does not exist!!!"
+#         Break
+#     }
+#     if (Test-Path -Path "$File" -PathType Leaf) {
+#         switch ($File.Split(".") | Select-Object -Last 1) {
+#             "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x", "-op'$Folder'", "-y", "$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
+#             "zip" { 7z x -o"$Folder" -y "$File" | Out-Null }
+#             "7z" { 7z x -o"$Folder" -y "$File" | Out-Null }
+#             "exe" { 7z x -o"$Folder" -y "$File" | Out-Null }
+#             Default { Write-Error "No way to Extract $File !!!"; Break }
+#         }
+#     }
+# }
+
+# function Download-CustomApp {
+#     param (
+#         [string]$Link,
+#         [string]$Folder
+#     )
+#     if ((curl -sIL "$Link" | Select-String -Pattern "Content-Disposition") -ne $Null) {
+#         $Package = $(curl -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" | Select-Object -Last 1).Trim('"')
+#     }
+#     else {
+#         $Package = $Link.split("/") | Select-Object -Last 1
+#     }
+#     Write-Host "Preparing to download $Package"
+#     aria2c --quiet --dir="$Folder" "$Link"
+#     Return $Package
+# }
+
+
+# function Install-CustomApp {
+#     param (
+#         [string]$URL,
+#         [string]$Folder
+#     )
+#     $Package = Download-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
+#     if (Test-Path -Path "$Env:UserProfile\Downloads\$Package" -PathType Leaf) {
+#         if (Test-Path Variable:Folder) {
+#             if (!(Test-Path -Path "$Env:UserProfile\bin\$Folder")) {
+#                 New-Item -Path "$Env:UserProfile\bin\$Folder" -ItemType Directory | Out-Null
+#             }
+#             Extract-Download -Folder "$Env:UserProfile\bin\$Folder" -File "$Env:UserProfile\Downloads\$Package"
+#         }
+#         else {
+#             Extract-Download -Folder "$Env:UserProfile\bin\" -File "$Env:UserProfile\Downloads\$Package"
+#         }
+#         Remove-Item -Path "$Env:UserProfile\Downloads\$Package"
+#     }
+}
+
+# function Install-CustomPackage {
+#     param (
+#         [string]$URL
+#     )
+#     $Package = Download-CustomApp -Link $URL
+#     if (Test-Path -Path "$Env:UserProfile\Downloads\$Package" -PathType Leaf) {
+#         Start-Process -FilePath ".\$Package" -ArgumentList "/S" -WorkingDirectory "${Env:UserProfile}\Downloads\" -Verb RunAs -Wait #-WindowStyle Hidden
+#         Remove-Item -Path "$Env:UserProfile\Downloads\$Package"
+#     }
+# }
+
+# function Remove-InstalledApp {
+#     param (
+#         [string]$Package
+#     )
+#     Write-Host "Uninstalling: $Package"
+#     Start-Process -FilePath "PowerShell" -ArgumentList "Get-AppxPackage", "-AllUsers", "-Name", "'$Package'" -Verb RunAs -WindowStyle Hidden
+# }
+
+# function Enable-Bucket {
+#     param (
+#         [string]$Bucket
+#     )
+#     if (!($(scoop bucket list).Name -eq "$Bucket")) {
+#         Write-Host "Adding Bucket $Bucket to scoop..."
+#         scoop bucket add $Bucket
+#     }
+#     else {
+#         Write-Host "Bucket $Bucket already added! Skipping..."
+#     }
+# }
+
+## STEP 1 : Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
+New-Section
+Write-Host "Setting Execution Policy for Current Process..."
+Set-ExecutionPolicy Bypass -Scope Process -Force
+New-Section
+
+## STEP 2 : Install Package Managers
+New-Section
+Write-Host "Installing Package Managers..."
+New-Step
+
+# Install WinGet
+New-Step
+Write-Host "Checking WinGet..."
+New-SubStep
+# Check if Chocolatey is already installed
+if (Get-AppPackage -name "Microsoft.DesktopAppInstaller") {
+    Write-Host "WinGet already installed! Skipping..."
+}
+else {
+    Write-Host "You should have Windows 11 to use WinGet"
+    Exit 1
+}
+
+# Install Scoop
+New-Step
+Write-Host "Checking Scoop..."
+New-SubStep
+# Check if Scoop is already installed
+if ( Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyContinue | Out-Null ) {
+    Write-Host "Scoop already installed! Skipping..."
+}
+else {
+    Write-Host "Installing Scoop..."
+    New-SubStep
+    iwr -useb get.scoop.sh | iex
+}
+
+# Install Chocolatey
+New-Step
+Write-Host "Checking Scoop..."
+New-SubStep
+# Check if Chocolatey is already installed
+if ( Get-Command -Name "choco" -CommandType Application -ErrorAction SilentlyContinue | Out-Null ) {
+    Write-Host "Chocolatey already installed! Skipping..."
+}
+else {
+    Write-Host "Installing Chocolatey..."
+    New-SubStep
+    iwr -useb chocolatey.org/install.ps1 | iex
+}
+
+## STEP 3 : Select packages to be installed using each package manager
+
+# WinGet Packages
+$WinGet = @(
+    # Browsers
+    "Google.Chrome",
+    "Mozilla.Firefox",
+    "Microsoft.Edge",
+    "Opera.Opera",
+
+    # Windows Tools
+    "Microsoft.DotNet.Framework.DeveloperPack_4",
+    "abbodi1406.vcredist", # Microsoft Visual C++ Bundle
+    "Microsoft.DotNet.Runtime.9",
+    "Microsoft.WindowsTerminal",
+    "Microsoft.PowerToys",
+
+    # Hardware Tools
+    "Logitech.Options", # Logitech Mouse & Keyboard Software
+
+    # Utilities
+    "Tonec.InternetDownloadManager", # Download Manager --requires Crack
+    "MartiCliment.UniGetUI", # Package Manager UI
+    "VideoLAN.VLC", # Media Player
+    "LocalSend.LocalSend", # File Transfer Tool
+    "Apple.iTunes", # iOS Device Manager
+    "Zoom.Zoom", # Video Conferencing Tool
+    "TeamViewer.TeamViewer", # Remote Desktop
+    "Google.ChromeRemoteDesktopHost", # Remote Desktop
+    "RARLab.WinRAR", # Archive Tool
+    "qBittorrent.qBittorrent", # Torrent Client
+    "Rufus.Rufus", # USB Bootable Tool
+    "yt-dlp.yt-dlp", # Youtube Downloader --requires Python & ffmpeg
+    "Gyan.FFmpeg", # Video Converter Tool 
+    "OBSProject.OBSStudio", # Screen Recorder
+    "dotPDNLLC.paintdotnet", # Image Editor
+    "HandBrake.HandBrake", # Video Transcoder
+    "CPUID.HWMonitor", # Hardware Monitor
+    "CrystalDewWorld.CrystalDiskMark", # Disk Benchmark Tool
+    "Eassos.DiskGenius", # Disk Management Tool
+    "PuTTY.PuTTY", # SSH and Telnet Client
+    "WinSCP.WinSCP", # SFTP and FTP Client
+
+    # Development Tools
+    "Microsoft.VisualStudioCode", # Code Editor
+    "Notepad++.Notepad++", # Text Editor
+    "Git.Git", # Version Control System
+    "GitHub.GitHubDesktop", # Github Desktop Client
+    "Starship.Starship", # Cross-Shell Prompt Tool --requires Nerd Fonts -- https://github.com/starship/starship
+    
+    # Programming Languages
+    "Python.Python.3.13", # Python Language
+    "MSYS2.MSYS2", # C++ Language
+    "Oracle.JavaRuntimeEnvironment", # Java Language
+
+    # Additional Tools for Development
+    "Docker.DockerDesktop"
+
+    # Gaming Tools
+    "Valve.Steam", # Game Client
+    "EpicGames.EpicGamesLauncher", # Game Client
+
+
+)
+
+# Scoop Packages
+$Scoop = @(
+    "scoop-tray",
+    "concfg",
+    #"curl",
+    #"busybox",
+    #"fzf",
+    #"neovim",
+    "pshazz",
+    "cacert",
+    "colortool",
+    #"sudo",
+    #"openjdk",
+    "icedtea-web",
+    #"go",
+    #"python",
+    #"gpg",
+    #"imgburn",
+    #"paint.net",
+    #"putty",
+    #"winscp",
+    #"spacesniffer",
+    #"filebot",
+    #"rufus",
+    #"etcher",
+    #"cpu-z",
+    #"gpu-z",
+    "ssd-z",
+    #"hwmonitor",
+    #"crystaldiskmark",
+    "hotkeyslist",
+    "open-log-viewer",
+    "baretail",
+    #"bleachbit",
+    #"hosts-file-editor",
+    "minio-client",
+    "lessmsi",
+    #"mqtt-explorer",
+    "tftpd",
+    "restic",
+    "Hack-NF",
+    "driverstoreexplorer",
+    "sysinternals",
+    "rktools2k3"
+)
+
+if ($HomeWorkstation) {
+    Remove-Variable -Name "Scoop"
+    $Scoop = @(
+        "ffmpeg",
+        "mpv",
+        #"vlc",
+        "lame",
+        #"musicbee",
+        #"mp3tag",
+        #"mkvtoolnix",
+        #"obs-studio",
+        #"yt-dlp",
+        #"ocenaudio",
+        #"mediainfo",
+        #"mediainfo-gui",
+        "cdrtools",
+        "cuetools",
+        "betterjoy",
+        "schismtracker")
+    foreach ($item in $Scoop) {
+        Install-ScoopApp -Package "$item"
     }
-    if (Test-Path -Path "$File" -PathType Leaf) {
-        switch ($File.Split(".") | Select-Object -Last 1) {
-            "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x", "-op'$Folder'", "-y", "$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
-            "zip" { 7z x -o"$Folder" -y "$File" | Out-Null }
-            "7z" { 7z x -o"$Folder" -y "$File" | Out-Null }
-            "exe" { 7z x -o"$Folder" -y "$File" | Out-Null }
-            Default { Write-Error "No way to Extract $File !!!"; Break }
-        }
-    }
 }
 
-function Download-CustomApp {
-    param (
-        [string]$Link,
-        [string]$Folder
-    )
-    if ((curl -sIL "$Link" | Select-String -Pattern "Content-Disposition") -ne $Null) {
-        $Package = $(curl -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" | Select-Object -Last 1).Trim('"')
-    }
-    else {
-        $Package = $Link.split("/") | Select-Object -Last 1
-    }
-    Write-Verbose -Message "Preparing to download $Package"
-    aria2c --quiet --dir="$Folder" "$Link"
-    Return $Package
+# Scoop Packages with Buckets
+$ScoopBucket = @(
+    @("nerd-fonts", "Hack-NF"), # Nerd Fonts --requires Starship
+)
+
+# Chocolatey Packages
+$Choco = @(
+    "syspin",
+    "sd-card-formatter",
+    "winimage",
+    "winsetupfromusb",
+    "fluidsynth"
+)
+choco install geforce-experience ---------------------------
+choco install geforce-game-ready-driver ------------------------------
+choco install steam
+choco install epicgameslauncher
+choco install rockstar-launcher ----------------
+foreach ($item in $Choco) {
+    Install-ChocoApp -Package "$item"
 }
 
+## STEP 4 : Install selected packages
+New-Section
+Write-Host "Installing Packages..."
 
-function Install-CustomApp {
-    param (
-        [string]$URL,
-        [string]$Folder
-    )
-    $Package = Download-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
-    if (Test-Path -Path "$Env:UserProfile\Downloads\$Package" -PathType Leaf) {
-        if (Test-Path Variable:Folder) {
-            if (!(Test-Path -Path "$Env:UserProfile\bin\$Folder")) {
-                New-Item -Path "$Env:UserProfile\bin\$Folder" -ItemType Directory | Out-Null
-            }
-            Extract-Download -Folder "$Env:UserProfile\bin\$Folder" -File "$Env:UserProfile\Downloads\$Package"
-        }
-        else {
-            Extract-Download -Folder "$Env:UserProfile\bin\" -File "$Env:UserProfile\Downloads\$Package"
-        }
-        Remove-Item -Path "$Env:UserProfile\Downloads\$Package"
-    }
+# Install WinGet Packages
+New-Step
+Write-Host "Installing WinGet Packages..."
+foreach ($item in $WinGet) {
+    Install-ScoopApp -Package "$item"
 }
 
-function Install-CustomPackage {
-    param (
-        [string]$URL
-    )
-    $Package = Download-CustomApp -Link $URL
-    if (Test-Path -Path "$Env:UserProfile\Downloads\$Package" -PathType Leaf) {
-        Start-Process -FilePath ".\$Package" -ArgumentList "/S" -WorkingDirectory "${Env:UserProfile}\Downloads\" -Verb RunAs -Wait #-WindowStyle Hidden
-        Remove-Item -Path "$Env:UserProfile\Downloads\$Package"
-    }
+# Install Scoop Packages
+New-Step
+Write-Host "Installing Scoop Packages..."
+foreach ($item in $Scoop) {
+    Install-ScoopApp -Package "$item"
 }
 
-function Remove-InstalledApp {
-    param (
-        [string]$Package
-    )
-    Write-Verbose -Message "Uninstalling: $Package"
-    Start-Process -FilePath "PowerShell" -ArgumentList "Get-AppxPackage", "-AllUsers", "-Name", "'$Package'" -Verb RunAs -WindowStyle Hidden
+# Install Scoop Packages with Buckets
+New-Step
+Write-Host "Installing Scoop Packages with Buckets..."
+foreach ($item in $ScoopBucket) {
+    Install-ScoopApp -Bucket "$item[1]" -Package "$item[0]"
 }
 
-function Enable-Bucket {
-    param (
-        [string]$Bucket
-    )
-    if (!($(scoop bucket list).Name -eq "$Bucket")) {
-        Write-Verbose -Message "Adding Bucket $Bucket to scoop..."
-        scoop bucket add $Bucket
-    }
-    else {
-        Write-Verbose -Message "Bucket $Bucket already added! Skipping..."
-    }
+# Install Chocolatey Packages
+New-Step
+choco feature enable -n=allowGlobalConfirmation
+choco feature disable checksumFiles
+Write-Host "Installing Chocolatey Packages..."
+foreach ($item in $Choco) {
+    Install-ScoopApp -Package "$item"
 }
 
-# Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
-if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
-    Write-Verbose -Message "Setting Execution Policy for Current User..."
-    Start-Process -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy", "-Scope", "CurrentUser", "-ExecutionPolicy", "Unrestricted", "-Force" -Verb RunAs -Wait
-    Write-Output "Restarting/Re-Run script!!!"
-    # TODO Auto Restart Script
-    Start-Sleep -Seconds 10
-    Break
-}
+## STEP 5 : Configure installed applications
 
-# Install WinGet, if not already installed
-# From crutkas's gist - https://gist.github.com/crutkas/6c2096eae387e544bd05cde246f23901
-#$hasPackageManager = Get-AppPackage -name "Microsoft.DesktopAppInstaller"
-if (!(Get-AppPackage -name "Microsoft.DesktopAppInstaller")) {
-    Write-Verbose -Message "Installing WinGet..."
-    @'
-# Set URL and Enable TLSv12
-$releases_url = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+# Configure Starship
+New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $Profile
 
-# Install Scoop, if not already installed
-#$scoopInstalled = Get-Command "scoop"
-if ( !(Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyContinue | Out-Null) ) {
-    Write-Verbose -Message "Installing Scoop..."
-    iex ((New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh'))
-}
 
-# Install Chocolatey, if not already installed
-#$chocoInstalled = Get-Command -Name "choco" -CommandType Application -ErrorAction SilentlyContinue | Out-Null
-if (! (Get-Command -Name "choco" -CommandType Application -ErrorAction SilentlyContinue | Out-Null) ) {
-    Write-Verbose -Message "Installing Chocolatey..."
-@'
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-'@ > $Env:Temp\choco.ps1
-    Start-Process -FilePath "PowerShell" -ArgumentList "$Env:Temp\choco.ps1" -Verb RunAs -Wait
-    Remove-Item -Path $Env:Temp\choco.ps1 -Force
-}
 
-# Dont Think We Need This!!!
-#Install-PackageProvider -Name NuGet
-
-# Install Nuget as Package Source Provider
-Register-PackageSource -Name Nuget -Location "http://www.nuget.org/api/v2" -ProviderName Nuget -Trusted
-
-# Install Microsoft.UI.Xaml (This is not currently working!!!)
-Install-Package Microsoft.UI.Xaml -RequiredVersion 2.7.1
-
-# Grab "Latest" release
-$releases = Invoke-RestMethod -uri $releases_url
-$latestRelease = $releases.assets | Where { $_.browser_download_url.EndsWith('msixbundle') } | Select -First 1
-
-# Install Microsoft.DesktopAppInstaller Package
-Add-AppxPackage -Path $latestRelease.browser_download_url
-'@ > $Env:Temp\winget.ps1
-    Start-Process -FilePath "PowerShell" -ArgumentList "$Env:Temp\winget.ps1" -Verb RunAs -Wait
-    Remove-Item -Path $Env:Temp\winget.ps1 -Force
-}
-
-# Only install OpenSSH Package, if not on Windows 10
-if ([Environment]::OSVersion.Version.Major -lt 10) {
-    Install-ScoopApp -Package "openssh"
-}
-
-# Install OpenSSH.Client on Windows 10+
-@'
-if ((Get-WindowsCapability -Online -Name OpenSSH.Client*).State -ne "Installed") {
-    Add-WindowsCapability -Online -Name OpenSSH.Client*
-}
-'@ > "${Env:Temp}\openssh.ps1"
-Start-Process -FilePath "PowerShell" -ArgumentList "${Env:Temp}\openssh.ps1" -Verb RunAs -Wait -WindowStyle Hidden
-Remove-Item -Path "${Env:Temp}\openssh.ps1" -Force
 
 # Configure git
 Install-WinGetApp -PackageID "Git.Git"
@@ -279,7 +493,7 @@ if (!($Env:GIT_SSH)) {
     [System.Environment]::SetEnvironmentVariable('GIT_SSH', (Resolve-Path (scoop which ssh)), 'USER')
 }
 if ((Get-Service -Name ssh-agent).Status -ne "Running") {
-    Start-Process -FilePath "PowerShell" -ArgumentList "Set-Service","ssh-agent","-StartupType","Manual" -Verb RunAs -Wait -WindowStyle Hidden
+    Start-Process -FilePath "PowerShell" -ArgumentList "Set-Service", "ssh-agent", "-StartupType", "Manual" -Verb RunAs -Wait -WindowStyle Hidden
 }
 
 # Configure Aria2 Download Manager
@@ -291,7 +505,7 @@ if (!$(scoop config aria2-warning-enabled) -eq $False) {
     scoop config aria2-warning-enabled false
 }
 if (!(Get-ScheduledTaskInfo -TaskName "Aria2RPC" -ErrorAction Ignore)) {
-@'
+    @'
 $Action = New-ScheduledTaskAction -Execute $Env:UserProfile\scoop\apps\aria2\current\aria2c.exe -Argument "--enable-rpc --rpc-listen-all" -WorkingDirectory $Env:UserProfile\Downloads
 $Trigger = New-ScheduledTaskTrigger -AtStartup
 $Principal = New-ScheduledTaskPrincipal -UserID "$Env:ComputerName\$Env:Username" -LogonType S4U
@@ -338,204 +552,30 @@ if ($HomeWorkstation) {
     }
 }
 
-# Install Scoop Packages
-$Scoop = @(
-    "scoop-tray",
-    "concfg",
-    #"curl",
-    #"busybox",
-    #"fzf",
-    #"neovim",
-    "pshazz",
-    "cacert",
-    "colortool",
-    #"sudo",
-    #"openjdk",
-    "icedtea-web",
-    #"go",
-    #"python",
-    #"gpg",
-    #"imgburn",
-    #"paint.net",
-    #"putty",
-    #"winscp",
-    #"spacesniffer",
-    #"filebot",
-    #"rufus",
-    #"etcher",
-    #"cpu-z",
-    #"gpu-z",
-    "ssd-z",
-    #"hwmonitor",
-    #"crystaldiskmark",
-    "hotkeyslist",
-    "open-log-viewer",
-    "baretail",
-    #"bleachbit",
-    #"hosts-file-editor",
-    "minio-client",
-    "lessmsi",
-    #"mqtt-explorer",
-    "tftpd",
-    "restic",
-    "Hack-NF",
-    "driverstoreexplorer",
-    "sysinternals")#,"rktools2k3")
-foreach ($item in $Scoop) {
-    Install-ScoopApp -Package "$item"
-}
-
-# Install Scoop Packages, if Home Workstation
-if ($HomeWorkstation) {
-    Remove-Variable -Name "Scoop"
-    $Scoop = @(
-        "ffmpeg",
-        "mpv",
-        #"vlc",
-        "lame",
-        #"musicbee",
-        #"mp3tag",
-        #"mkvtoolnix",
-        #"obs-studio",
-        #"yt-dlp",
-        #"ocenaudio",
-        #"mediainfo",
-        #"mediainfo-gui",
-        "cdrtools",
-        "cuetools",
-        "betterjoy",
-        "schismtracker")
-    foreach ($item in $Scoop) {
-        Install-ScoopApp -Package "$item"
-    }
-}
-
-# Install WinGet Packages
-$WinGet = @(
-    #"Microsoft.dotNetFramework",
-    "gerardog.gsudo",
-    "Microsoft.DotNet.DesktopRuntime.3_1",
-    "Microsoft.DotNet.DesktopRuntime.5",
-    "Microsoft.DotNet.DesktopRuntime.6",
-    "Microsoft.DotNet.DesktopRuntime.7",
-    "Microsoft.WindowsTerminal",
-    "Microsoft.PowerToys",
-    "frippery.busybox-w32",
-    "junegunn.fzf",
-    "Neovim.Neovim",
-    "Obsidian.Obsidian",
-    "Microsoft.OpenJDK.17",
-    "GoLang.Go.1.19",
-    "Python.Python.3.11",
-    "chrisant996.Clink",
-    "PuTTY.PuTTY",
-    "WinSCP.WinSCP",
-    "Balena.Etcher",
-    "CPUID.HWMonitor",
-    "CrystalDewWorld.CrystalDiskMark",
-    "BleachBit.BleachBit",
-    #"TeamViewer.TeamViewer",
-    "GnuPG.GnuPG",
-    "LIGHTNINGUK.ImgBurn",
-    "dotPDNLLC.paintdotnet",
-    "UderzoSoftware.SpaceSniffer",
-    "Rufus.Rufus",
-    "scottlerch.hosts-file-editor",
-    #"Minio.Client",
-    "thomasnordquist.MQTT-Explorer",
-    "jziolkowski.tdm",
-    "HDDGURU.HDDRawCopyTool",
-    "dnSpyEx.dnSpy",
-    "JLC.EasyEDA",
-    "Google.Chrome",
-    "Lexikos.AutoHotkey",
-    "SumatraPDF.SumatraPDF",
-    "ScooterSoftware.BeyondCompare4",
-    "Eassos.DiskGenius",
-    "RevoUninstaller.RevoUninstaller",
-    "ElaborateBytes.VirtualCloneDrive",
-    "RARLab.WinRAR",
-    "Piriform.Speccy",
-    "Piriform.Defraggler",
-    "Starship.Starship",
-    "OliverBetz.ExifTool"
-    )
-foreach ($item in $WinGet) {
-    Install-WinGetApp -PackageID "$item"
-}
-
-# Add Directories to User Path
-#[System.Environment]::SetEnvironmentVariable("PATH", $Env:PATH + ";$Env:ProgramFiles\WinRAR","USER")
-
-# Install WinGet Packages, if Home Workstation
-if ($HomeWorkstation) {
-    Remove-Variable -Name "WinGet"
-    $WinGet = @(
-        "Discord.Discord",
-        "HandBrake.HandBrake",
-        "AndreWiethoff.ExactAudioCopy",
-        "clsid2.mpc-hc",
-        "Plex.Plex",
-        "Plex.Plexamp",
-        "PointPlanck.FileBot",
-        "CPUID.CPU-Z",
-        "TechPowerUp.GPU-Z",
-        "VideoLAN.VLC",
-        "Mp3tag.Mp3tag",
-        "MusicBee.MusicBee",
-        "OBSProject.OBSStudio",
-        "yt-dlp.yt-dlp",
-        "MediaArea.MediaInfo",
-        "MediaArea.MediaInfo.GUI",
-        "MoritzBunkus.MKVToolNix",
-        "Ocenaudio.Ocenaudio",
-        "OpenMPT.OpenMPT",
-        "Romcenter.Romcenter",
-        "Valve.Steam"
-    )
-    foreach ($item in $WinGet) {
-        Install-WinGetApp -PackageID "$item"
-    }
-}
-
-# Custom WinGet install for VSCode
-winget install Microsoft.VisualStudioCode --override '/ SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
-
-# Install Chocolatey Packages
-$Choco = @(
-    "syspin",
-    "sd-card-formatter",
-    "winimage",
-    "winsetupfromusb",
-    "fluidsynth"
-)
-foreach ($item in $Choco) {
-    Install-ChocoApp -Package "$item"
-}
 
 # Install Steam Applications
 if ($HomeWorkstation) {
     # Get Steam AppID's from https://steamdb.info/
-# https://developer.valvesoftware.com/wiki/Command_Line_Options#Steam_.28Windows.29
-$SteamDB = @(
-    "1026460" #Lossless Scaling Demo,
-    "431960"  #Wallpaper Engine,
-    "388080"  #Borderless Gaming,
-    "367670"  #Controller Companion,
-    "227260"  #DisplayFusion,
-    "274920"  #FaceRig
-)
-# Collect installed Steam AppID's
-$InstalledIDs = [System.Collections.ArrayList]::new()
-foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
-    [void]$InstalledIDs.Add((Get-Content -Path $item))
-}
-# Install Steam AppID, if not already installed
-foreach ($item in $SteamDB) {
-    if ($item -ne $InstalledIDs) {
-        Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch", "$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
+    # https://developer.valvesoftware.com/wiki/Command_Line_Options#Steam_.28Windows.29
+    $SteamDB = @(
+        "1026460" #Lossless Scaling Demo,
+        "431960"  #Wallpaper Engine,
+        "388080"  #Borderless Gaming,
+        "367670"  #Controller Companion,
+        "227260"  #DisplayFusion,
+        "274920"  #FaceRig
+    )
+    # Collect installed Steam AppID's
+    $InstalledIDs = [System.Collections.ArrayList]::new()
+    foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
+        [void]$InstalledIDs.Add((Get-Content -Path $item))
     }
-}
+    # Install Steam AppID, if not already installed
+    foreach ($item in $SteamDB) {
+        if ($item -ne $InstalledIDs) {
+            Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch", "$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
+        }
+    }
 }
 
 # Create Symbolic Links
@@ -716,7 +756,25 @@ Install-WinGetApp -PackageID Canonical.Ubuntu.2204
 Write-Output "Install complete! Please reboot your machine/worksation!"
 Start-Sleep -Seconds 10
 
+
 <# Run Script
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/mikepruett3/7ca6518051383ee14f9cf8ae63ba18a7/raw/shell-setup.ps1'))"
 
 #>
+
+Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online
+Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online
+wsl --install
+
+
+# Activate Windows & Office [www.gravesoft.dev]
+# irm https://get.activated.win | iex
+
+# Graphics [https://www.reddit.com/r/GenP/]
+
+## Add features (Control Panel -> Programs and Features)
+# Windows Sandbox
+# Windows Subsystem for Linux
+
+# Add Directories to User Path
+#[System.Environment]::SetEnvironmentVariable("PATH", $Env:PATH + ";$Env:ProgramFiles\WinRAR","USER")
