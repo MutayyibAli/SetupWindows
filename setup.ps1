@@ -461,7 +461,7 @@ if ($setup) {
     Write-Host "Configuring Windows Settings..."
     New-SubStep
     # https://github.com/Raphire/Win11Debloat
-    & ([scriptblock]::Create((irm "https://debloat.raphi.re/"))) -Silent `
+    & ([scriptblock]::Create((Invoke-RestMethod "https://debloat.raphi.re/"))) -Silent `
         -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
         -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
         -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
@@ -641,7 +641,7 @@ if ($setup) {
     # Remove unused Packages/Applications
     New-Step
     Write-Host "Removing Unused Applications..."
-    foreach ($item in $Remove) {
+    foreach ($item in $RemoveID) {
         Remove-InstalledApp -Package $item
     }
 
@@ -739,7 +739,7 @@ if ($setup) {
 
     # Crack Microsoft Office
     New-Step
-    irm https://get.activated.win | iex
+    Invoke-RestMethod https://get.activated.win | Invoke-Expression
 }
 New-Step
 Write-Host "Restart Computer"
