@@ -120,11 +120,9 @@ $Remove = @(
 # ======================================================================================================================
 # ======================================================================================================================
 
-# Setup global variables
-$width = (Get-Host).UI.RawUI.MaxWindowSize.Width
-
 # Print a line on the console for a new section
 function New-Section {
+    $width = (Get-Host).UI.RawUI.MaxWindowSize.Width
     for ($i = 1; $i -le $width; $i++) {
         Write-Host "=" -NoNewline -ForegroundColor Yellow -BackgroundColor DarkGreen
     }
@@ -133,6 +131,7 @@ function New-Section {
 
 # Print a line on the console for a new step
 function New-Step {
+    $width = (Get-Host).UI.RawUI.MaxWindowSize.Width
     for ($i = 1; $i -le $width; $i++) {
         Write-Host "-" -NoNewline -ForegroundColor Cyan -BackgroundColor DarkBlue
     }
@@ -141,6 +140,7 @@ function New-Step {
 
 # Print a line on the console between sub-steps
 function New-SubStep {
+    $width = (Get-Host).UI.RawUI.MaxWindowSize.Width
     for ($i = 1; $i -le $width; $i++) {
         Write-Host "-" -NoNewline
     }
