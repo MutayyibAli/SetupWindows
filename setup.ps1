@@ -156,7 +156,7 @@ $RemoveID = @(
 )
 
 $RemoveName = @(
-    
+
 )
 
 # ======================================================================================================================
@@ -413,10 +413,10 @@ New-Step
 Write-Host "Enabling Windows Features..."
 New-SubStep
 Write-Host "Enabling Windows Sandbox..."
-Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online
+Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
 New-SubStep
 Write-Host "Enabling Windows Subsystem for Linux..."
-Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online
+Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
 
 ## Install Package Managers
 New-Section
