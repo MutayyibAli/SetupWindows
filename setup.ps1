@@ -104,9 +104,6 @@ $WinGet = @(
     # Additional Tools for Development
     "Docker.DockerDesktop"
 
-    # Gaming Tools
-    "Valve.Steam", # Game Client
-    "EpicGames.EpicGamesLauncher" # Game Client
 )
 
 # Scoop Packages
@@ -119,9 +116,7 @@ $Scoop = @(
 
 # Chocolatey Packages
 $Choco = @(
-    "geforce-experience", # Nvidia GeForce Experience
-    "geforce-game-ready-driver", # Nvidia GeForce Game Ready Driver
-    "rockstar-launcher" # Rockstar Games Launcher
+    
 )
 
 # Pip Packages
@@ -148,6 +143,22 @@ $Pip = @(
     "django", # Web App Library
     "requests", # HTTP Library
     "beautifulsoup4" # Web Scraping Library
+)
+
+## Apps for gaming PC
+$WinGetG = @(
+    "Valve.Steam", # Game Client
+    "EpicGames.EpicGamesLauncher" # Game Client
+)
+
+$ScoopG = @(
+
+)
+
+$ChocoG = @(
+    "geforce-experience", # Nvidia GeForce Experience
+    "geforce-game-ready-driver", # Nvidia GeForce Game Ready Driver
+    "rockstar-launcher" # Rockstar Games Launcher
 )
 
 # Applications to be removed
@@ -375,6 +386,19 @@ else {
     Write-Host "Running as Administrator"
 }
 
+# Check PC
+New-Section
+Write-Host "Checking PC..."
+$MainPC = false
+if ((Get-WmiObject Win32_VideoController).Name -like "*NVIDIA*") {
+    $MainPC = true
+    Write-Host "Main PC Detected"
+}
+else {
+    Write-Host "Secondary PC Detected"
+}
+
+
 ## Configure Windows Settings
 New-Section
 Write-Host "Configuring Windows Settings..."
@@ -403,10 +427,10 @@ Write-Host "Configuring Windows Settings..."
 New-SubStep
 # https://github.com/Raphire/Win11Debloat
 & ([scriptblock]::Create((irm "https://debloat.raphi.re/"))) -Silent `
-        -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
-        -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
-        -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
-        -ExplorerToThisPC
+    -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
+    -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
+    -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
+    -ExplorerToThisPC
 # Options
 # -Silent                       : Suppresses all interactive prompts, so the script will run without requiring any user input.
 # -RunDefaults	                : Run the script with the default settings.
@@ -534,6 +558,32 @@ choco feature disable checksumFiles
 Write-Host "Installing Chocolatey Packages..."
 foreach ($item in $Choco) {
     Install-ChocoApp -Package "$item"
+}
+
+# If Main PC then install Gaming Apps
+if ($MainPC) {
+    # Install WinGet Packages
+    New-Step
+    Write-Host "Installing WinGet Packages..."
+    foreach ($item in $WinGetG) {
+        Install-WinGetApp -Package "$item"
+    }
+
+    # Install Scoop Packages
+    New-Step
+    Write-Host "Installing Scoop Packages with Buckets..."
+    foreach ($item in $ScoopG) {
+        Install-ScoopApp -Bucket $item[0] -Package $item[1]
+    }
+
+    # Install Chocolatey Packages
+    New-Step
+    choco feature enable -n=allowGlobalConfirmation
+    choco feature disable checksumFiles
+    Write-Host "Installing Chocolatey Packages..."
+    foreach ($item in $ChocoG) {
+        Install-ChocoApp -Package "$item"
+    }
 }
 
 # Upgrade Apps
