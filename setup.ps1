@@ -389,9 +389,9 @@ else {
 # Check PC
 New-Section
 Write-Host "Checking PC..."
-$MainPC = false
+$MainPC = $false
 if ((Get-WmiObject Win32_VideoController).Name -like "*NVIDIA*") {
-    $MainPC = true
+    $MainPC = $true
     Write-Host "Main PC Detected"
 }
 else {
