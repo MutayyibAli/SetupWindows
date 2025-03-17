@@ -11,12 +11,12 @@
     Last Updated: March 16th, 2025
 #>
 
-## Select packages to be installed using each package manager
-
 # Activate Windows & Office [www.gravesoft.dev]
 # irm https://get.activated.win | iex
 
 # Graphics [https://www.reddit.com/r/GenP/]
+
+## Select packages to be installed using each package manager
 
 # WinGet Packages
 $WinGet = @(
@@ -51,9 +51,9 @@ $WinGet = @(
     "Microsoft.DotNet.DesktopRuntime.9",
 
     # Utilities
-    "Tonec.InternetDownloadManager", # Download Manager --requires Crack
     "Adobe.CreativeCloud", # Adobe Creative Cloud --requires Crack
     "Microsoft.Office", # Microsoft Office --requires Crack
+    "Tonec.InternetDownloadManager", # Download Manager --requires Crack
     "Microsoft.OneDrive", # Cloud Storage
     "Microsoft.WindowsTerminal", # Terminal Emulator
     "Microsoft.PowerShell", # PowerShell 7
@@ -90,7 +90,8 @@ $WinGet = @(
     "Git.Git", # Version Control System
     "GitHub.GitHubDesktop", # Github Desktop Client
     "Starship.Starship", # Cross-Shell Prompt Tool --requires Nerd Fonts -- https://github.com/starship/starship
-    
+    "chrisant996.Clink", # Command Prompt Enhancer
+
     # Programming Languages
     "Python.Python.3.13", # Python Language
     "Python.Launcher", # Python Launcher
@@ -124,10 +125,13 @@ $Choco = @(
 $Pip = @(
     # General Python
     "coverage", # Code Coverage Tool
-    
+    "pylint", # Code Linter
+
     # Data Science
     "numpy", # Numerical Python
     "pandas", # Data Analysis Library
+
+    # Data Visualization
     "matplotlib", # Data Visualization Library
     "seaborn", # Data Visualization Library
 
@@ -138,6 +142,8 @@ $Pip = @(
     # Web Development
     "flask", # Web App Library
     "django", # Web App Library
+    "requests", # HTTP Library
+    "beautifulsoup4", # Web Scraping Library
 )
 
 # Applications to be removed
@@ -255,6 +261,29 @@ function Install-ChocoApp {
         # --yes                         : To automatically answer yes to all prompts
         # --ignore-checksums            : To ignore checksums when downloading packages
         New-Step
+    }
+}
+
+function Install-PipPackage {
+    param ( [string]$Package )
+
+    New-Step
+    Write-Host "Preparing to install " -ForegroundColor Black -BackgroundColor White -NoNewline
+    Write-Host "$Package" -ForegroundColor Blue -BackgroundColor White -NoNewline
+    Write-Host " using Pip" -ForegroundColor Black -BackgroundColor White
+    New-SubStep
+
+    $listApp = pip list
+    if ($listApp -match "$Package ") {
+        Write-Host "Package $Package already installed! Skipping..."
+        New-Step
+    }
+    else {
+        Write-Host "Installing $Package"
+        New-SubStep
+        pip install $package
+        # Options for pip install command
+        New-StepS
     }
 }
 
@@ -417,6 +446,13 @@ foreach ($item in $Choco) {
     Install-ChocoApp -Package "$item"
 }
 
+# Install Pip Packages
+New-Step
+Write-Host "Installing Pip Packages..."
+foreach ($item in $Pip) {
+    Install-PipPackage -Package "$item"
+}
+
 # Remove unused Packages/Applications
 New-Step
 Write-Host "Removing Unused Applications..."
@@ -455,15 +491,23 @@ $json.profiles.list | ForEach-Object {
 }
 $json | ConvertTo-Json -Depth 10 | Out-File -Encoding utf8 $settings
 
-# Configure Starship
+## Configure Starship
 New-Step
 Write-Host "Configuring Starship..."
+
 # For Windows Terminal
 $myProfile = $Profile
 New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $myProfile -Force
 # For Powershell 7
 $newProfile = $myProfile.Replace('WindowsPowerShell', 'PowerShell')
 New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $newProfile -Force
+# For Bash
+New-Item -ItemType file -Value 'eval "$(starship init bash)"' -Path "$HOME/.bashrc" -Force
+
+#Set Theme
+New-SubStep
+Write-Host "Setting Theme"
+starship preset pastel-powerline -o "$HOME/.config/starship.toml"
 
 # Configure WSL
 New-Step
@@ -474,9 +518,16 @@ if (!(Test-Command -Command "wsl")) {
 }
 New-SubStep
 Write-Host "Installing Ubuntu in WSL"
+New-SubStep
 wsl --install -d Ubuntu
 Write-Host "Installation complete!"
-Write-Host "Restarting Computer"
+
+# Crack Microsoft Office
+New-Step
+irm https://get.activated.win | iex
+
+New-Step
+Write-Host "Restart Computer"
 Start-Sleep -Seconds 10
 Exit 0
 # ======================================================================================================================
