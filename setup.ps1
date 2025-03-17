@@ -1,4 +1,3 @@
-# PowerShell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/MutayyibAli/SetupWindows/refs/heads/main/setup.ps1'))"
 # iwr -useb https://raw.githubusercontent.com/MutayyibAli/SetupWindows/refs/heads/main/setup.ps1 | iex
 <#
 .SYNOPSIS
