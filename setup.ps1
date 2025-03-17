@@ -256,6 +256,17 @@ function Remove-InstalledApp {
     }
 }
 
+function Test-Command {
+    param ( [string]$Command )
+
+    if ([bool](Get-Command -Name $Command -CommandType Application -ErrorAction SilentlyContinue) ) {
+        return $true
+    }
+    else {
+        return $false
+    }
+}
+
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
@@ -298,7 +309,6 @@ Write-Host "Installing Package Managers..."
 New-Step
 Write-Host "Checking WinGet..."
 New-SubStep
-# Check if Chocolatey is already installed
 if (Get-AppPackage -name "Microsoft.DesktopAppInstaller") {
     Write-Host "WinGet already installed!"
     Write-Host "Installing GUI"
@@ -318,7 +328,7 @@ New-Step
 Write-Host "Checking Scoop..."
 New-SubStep
 # Check if Scoop is already installed
-if ( Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyContinue | Out-Null ) {
+if ( Test-Command -Command "scoop" ) {
     Write-Host "Scoop already installed! Skipping..."
 }
 else {
@@ -329,10 +339,10 @@ else {
 
 # Install Chocolatey
 New-Step
-Write-Host "Checking Scoop..."
+Write-Host "Checking Chocolatey..."
 New-SubStep
 # Check if Chocolatey is already installed
-if ( Get-Command -Name "choco" -CommandType Application -ErrorAction SilentlyContinue | Out-Null ) {
+if ( GTest-Command -Command "choco" ) {
     Write-Host "Chocolatey already installed! Skipping..."
 }
 else {
@@ -428,12 +438,12 @@ New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -
 # Configure WSL
 New-Step
 Write-Host "Configuring WSL"
-if (!(Get-Command "wsl" -CommandType Application -ErrorAction Ignore)) {
+if (!(Test-Command -Command "wsl")) {
     Write-Host "Installing Windows SubSystems for Linux..."
-    Start-Process -FilePath "PowerShell" -ArgumentList "wsl", "--install" -Verb RunAs -Wait -WindowStyle Hidden
+    wsl --install
 }
 New-SubStep
-Write-Host "InstallingUbuntu in WSL"
+Write-Host "Installing Ubuntu in WSL"
 wsl --install -d Ubuntu
 Write-Host "Installation complete!"
 Write-Host "Restarting Computer"
