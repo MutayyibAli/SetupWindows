@@ -60,7 +60,6 @@ $WinGet = @(
     "Microsoft.PowerShell", # PowerShell 7
     "Microsoft.PowerToys", # Windows Utilities
     "Microsoft.WSL", # Windows Subsystem for Linux
-    "Microsoft.DevHome", # Windows Dev Home
 
     # Utilities
     "Adobe.CreativeCloud", # Adobe Creative Cloud --requires Crack
@@ -154,8 +153,12 @@ $Pip = @(
 )
 
 # Applications to be removed
-$Remove = @(
+$RemoveID = @(
     
+)
+
+$RemoveName = @(
+
 )
 
 # ======================================================================================================================
@@ -322,6 +325,34 @@ function Remove-InstalledApp {
     }
 }
 
+function Remove-InstalledAppByName {
+    param ( [string]$Name )
+
+    New-Step
+    Write-Host "Preparing to uninstall " -ForegroundColor Black -BackgroundColor White -NoNewline
+    Write-Host "$Name" -ForegroundColor Red -BackgroundColor White -NoNewline
+    Write-Host " using WinGet" -ForegroundColor Black -BackgroundColor White
+    New-SubStep
+
+    # Check if the package is already installed
+    if (!(Get-AppPackage -Name $Name)) {
+        Write-Host "$Name not installed! Skipping..."
+        New-Step
+    }
+    else {
+        Write-Host "Uninstalling $Name"
+        New-SubStep
+        winget uninstall --name "$Name" --silent --accept-source-agreements --accept-package-agreements --disable-interactivity
+        # Options for winget install command
+        # --silent                      : To suppress the installation dialog
+        # --exact                       : To install the exact package specified
+        # --accept-package-agreements   : To accept the package agreements without prompting
+        # --accept-source-agreements    : To accept the source agreements without prompting
+        # --disable-interactivity       : To disable interactivity during uninstallation
+        New-Step
+    }
+}
+
 function Test-Command {
     param ( [string]$Command )
 
@@ -465,6 +496,13 @@ New-Step
 Write-Host "Removing Unused Applications..."
 foreach ($item in $Remove) {
     Remove-InstalledApp -Package $item
+}
+
+# Remove unused Packages/Applications by Name
+New-Step
+Write-Host "Removing Unused Applications..."
+foreach ($name in $RemoveName) {
+    Remove-InstalledApp -Name $name
 }
 
 # ======================================================================================================================
