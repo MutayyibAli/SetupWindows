@@ -214,7 +214,8 @@ function Install-WinGetApp {
     New-SubStep
 
     # Check if the package is already installed
-    if (Get-AppPackage -Name $Package) {
+		listApp = winget list
+    if (($listApp -match $Package) -or (Get-AppPackage -Name $Package)) {
         Write-Host "$Package already installed! Skipping..."
         New-Step
     }
