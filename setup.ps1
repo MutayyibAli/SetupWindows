@@ -293,7 +293,6 @@ Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -
 ## Install Package Managers
 New-Section
 Write-Host "Installing Package Managers..."
-New-Step
 
 # Install WinGet
 New-Step
