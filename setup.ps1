@@ -438,7 +438,7 @@ if ($setup) {
 
     Install-Module -Name PSWindowsUpdate -Force
     New-Step
-    Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
+    Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot
 
     ## Configure Windows Settings
     New-Section
@@ -662,7 +662,7 @@ if ($setup) {
 # Upgrade Apps
 New-Section
 Write-Host "Upgrading Windows..."
-Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
+Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot
 New-Step
 Write-Host "Upgrading WinGet Apps..."
 winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
