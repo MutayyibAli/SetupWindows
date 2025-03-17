@@ -127,7 +127,7 @@ $width = (Get-Host).UI.RawUI.MaxWindowSize.Width
 # Print a line on the console for a new section
 function New-Section {
     for ($i = 1; $i -le $width; $i++) {
-        Write-Host "=" -NoNewline -ForegroundColor Yellow -BackgroundColor DarkRed
+        Write-Host "=" -NoNewline -ForegroundColor Yellow -BackgroundColor DarkGreen
     }
     Write-Host ""
 }
@@ -143,7 +143,7 @@ function New-Step {
 # Print a line on the console between sub-steps
 function New-SubStep {
     for ($i = 1; $i -le $width; $i++) {
-        Write-Host "-" -NoNewline -ForegroundColor Cyan -BackgroundColor DarkBlue
+        Write-Host "-"
     }
     Write-Host ""
 }
@@ -268,7 +268,7 @@ Write-Host "Checking Administrator Rights..."
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent() `
     ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     Write-Host "Running as Standard User"
-    Write-Host "Please run the script as Administrator"
+    Write-Host "Please run the script as Administrator" -ForegroundColor Red -BackgroundColor White
     Exit 1
 }
 else {
@@ -279,7 +279,6 @@ else {
 New-Section
 Write-Host "Setting Execution Policy for Current Process..."
 Set-ExecutionPolicy Bypass -Scope Process -Force
-New-Section
 
 ## Enable Windows Features
 New-Section
@@ -326,7 +325,7 @@ if ( Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyCon
 else {
     Write-Host "Installing Scoop..."
     New-SubStep
-    Invoke-WebRequest -useb get.scoop.sh | Invoke-Expression
+    Invoke-Expression "& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin"
 }
 
 # Install Chocolatey
