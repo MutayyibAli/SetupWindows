@@ -397,6 +397,38 @@ powercfg -change -monitor-timeout-ac 30
 powercfg -change -standby-timeout-ac 0
 powercfg -change -hibernate-timeout-ac 0
 
+# Configure Windows Settings
+New-Step
+Write-Host "Configuring Windows Settings..."
+New-SubStep
+# https://github.com/Raphire/Win11Debloat
+& ([scriptblock]::Create((irm "https://debloat.raphi.re/"))) -Silent `
+        -RemoveApps -RemoveCommApps -DisableDVR -ClearStartAllUsers -DisableTelemetry -DisableSuggestions `
+        -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
+        -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
+        -ExplorerToThisPC
+# Options
+# -Silent                       : Suppresses all interactive prompts, so the script will run without requiring any user input.
+# -RunDefaults	                : Run the script with the default settings.
+# -RemoveApps	                : Remove the bloatware apps.
+# -RemoveCommApps	            : Remove the Mail, Calendar, and People apps.
+# -DisableDVR	                : Disable Xbox game/screen recording feature & stop gaming overlay popups.
+# -ClearStartAllUsers           : Remove all pinned apps from start for all existing and new users.
+# -DisableTelemetry	            : Disable telemetry, diagnostic data & targeted ads.
+# -DisableSuggestions	        : Disable tips, tricks, suggestions and ads in start, settings, notifications and File Explorer.
+# -DisableDesktopSpotlight	    : Disable the 'Windows Spotlight' desktop background option.
+# -DisableLockscreenTips	    : Disable tips & tricks on the lockscreen.
+# -DisableBing	                : Disable & remove Bing web search in Windows search.
+# -ShowHiddenFolders	        : Show hidden files, folders and drives.
+# -ShowKnownFileExt	            : Show file extensions for known file types.
+# -HideDupliDrive	            : Hide duplicate removable drive entries from the File Explorer navigation pane, so only the entry under 'This PC' remains.
+# -TaskbarAlignLeft	            : Align taskbar icons to the left.
+# -ShowSearchIconTb	            : Show search icon on the taskbar.
+# -DisableStartRecommended      : Disable & hide the recommended section in the start menu. This will also change the start menu layout to More pins.
+# -HideHome	                    : Hide the home section from the File Explorer navigation pane and add a toggle in the File Explorer folder options.
+# -HideGallery	                : Hide the gallery section from the File Explorer navigation pane and add a toggle in the File Explorer folder options.
+# -ExplorerToThisPC	            : Changes the page that File Explorer opens to This PC.
+
 # Configure Folder Options
 New-Step
 Write-Host "Configuring Folder Options..."
@@ -503,6 +535,15 @@ Write-Host "Installing Chocolatey Packages..."
 foreach ($item in $Choco) {
     Install-ChocoApp -Package "$item"
 }
+
+# Upgrade Apps
+New-Step
+Write-Host "Upgrading Apps..."
+winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
+scoop update *
+choco feature enable -n=allowGlobalConfirmation
+choco feature disable checksumFiles
+choco upgrade all
 
 # Install Pip Packages
 New-Step
