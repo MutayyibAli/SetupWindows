@@ -69,7 +69,6 @@ $WinGet = @(
     "LocalSend.LocalSend", # File Transfer Tool
     "Apple.iTunes", # iOS Device Manager
     "Apple.AppleMobileDeviceSupport", # iOS Device Support
-    "Apple.Bonjour", # Apple Bonjour Service
     "Logitech.Options", # Logitech Mouse & Keyboard Software
     "RustemMussabekov.Raindrop", # Bookmark Manager
     "Zoom.Zoom", # Video Conferencing Tool
@@ -79,8 +78,7 @@ $WinGet = @(
     "7zip.7zip", # Archive Tool
     "qBittorrent.qBittorrent", # Torrent Client
     "Rufus.Rufus", # USB Bootable Tool
-    "yt-dlp.yt-dlp", # Youtube Downloader --requires Python & ffmpeg
-    "Gyan.FFmpeg", # Video Converter Tool 
+    "yt-dlp.yt-dlp", # Youtube Downloader
     "OBSProject.OBSStudio", # Screen Recorder
     "dotPDNLLC.paintdotnet", # Image Editor
     "HandBrake.HandBrake", # Video Transcoder
@@ -102,7 +100,6 @@ $WinGet = @(
     "Python.Python.3.13", # Python Language
     "Python.Launcher", # Python Launcher
     "MSYS2.MSYS2", # C++ Language
-    "Oracle.JavaRuntimeEnvironment", # Java Language
 
     # Additional Tools for Development
     "Docker.DockerDesktop"
@@ -140,6 +137,7 @@ $Pip = @(
     # Data Visualization
     "matplotlib", # Data Visualization Library
     "seaborn", # Data Visualization Library
+    "plotly", # Data Visualization Library
 
     # Machine Learning
     "scikit-learn", # Machine Learning Library
@@ -217,7 +215,6 @@ function Install-WinGetApp {
         # --exact                       : To install the exact package specified
         # --accept-package-agreements   : To accept the package agreements without prompting
         # --accept-source-agreements    : To accept the source agreements without prompting
-        New-Step
     }
 }
 
@@ -244,7 +241,6 @@ function Install-ScoopApp {
         scoop install $Package
         # Options for scoop install command
         
-        New-Step
     }
 }
 
@@ -270,7 +266,6 @@ function Install-ChocoApp {
         # Options for choco install command
         # --yes                         : To automatically answer yes to all prompts
         # --ignore-checksums            : To ignore checksums when downloading packages
-        New-Step
     }
 }
 
@@ -293,7 +288,6 @@ function Install-PipPackage {
         New-SubStep
         pip install $package
         # Options for pip install command
-        New-StepS
     }
 }
 
@@ -321,7 +315,6 @@ function Remove-InstalledApp {
         # --accept-package-agreements   : To accept the package agreements without prompting
         # --accept-source-agreements    : To accept the source agreements without prompting
         # --disable-interactivity       : To disable interactivity during uninstallation
-        New-Step
     }
 }
 
@@ -349,7 +342,6 @@ function Remove-InstalledAppByName {
         # --accept-package-agreements   : To accept the package agreements without prompting
         # --accept-source-agreements    : To accept the source agreements without prompting
         # --disable-interactivity       : To disable interactivity during uninstallation
-        New-Step
     }
 }
 
@@ -383,15 +375,43 @@ else {
     Write-Host "Running as Administrator"
 }
 
-## Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
+## Configure Windows Settings
 New-Section
+Write-Host "Configuring Windows Settings..."
+#Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
+New-Step
 Write-Host "Setting Execution Policy for Current Process..."
 Set-ExecutionPolicy Bypass -Scope Process -Force
 
-## Enable Windows Features
-New-Section
-Write-Host "Enabling Windows Features..."
+# Configure Power Plan
 New-Step
+Write-Host "Configuring Power Plan..."
+New-SubStep
+Write-Host "Setting Power Plan to High Performance..."
+powercfg.exe -SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+New-SubStep
+Write-Host "Setting Sleep Timeout to 30 minutes..."
+Write-Host "Setting Standby Timeout to 0 minutes..."
+Write-Host "Setting Hibernate Timeout to 0 minutes..."
+powercfg -change -monitor-timeout-ac 30
+powercfg -change -standby-timeout-ac 0
+powercfg -change -hibernate-timeout-ac 0
+
+# Configure Folder Options
+New-Step
+Write-Host "Configuring Folder Options..."
+New-SubStep
+$key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+Write-Host "Disable show hidden files"
+Set-ItemProperty $key Hidden 1
+New-SubStep
+Write-Host "Showing extensions"
+Set-ItemProperty $key HideFileExt 0
+
+# Enable Windows Features
+New-Step
+Write-Host "Enabling Windows Features..."
+New-SubStep
 Write-Host "Enabling Windows Sandbox..."
 Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online
 New-SubStep
@@ -472,7 +492,7 @@ foreach ($item in $WinGet) {
 New-Step
 Write-Host "Installing Scoop Packages with Buckets..."
 foreach ($item in $Scoop) {
-    Install-ScoopApp -Bucket "$item[1]" -Package "$item[0]"
+    Install-ScoopApp -Bucket $item[1] -Package $item[0]
 }
 
 # Install Chocolatey Packages
@@ -487,6 +507,11 @@ foreach ($item in $Choco) {
 # Install Pip Packages
 New-Step
 Write-Host "Installing Pip Packages..."
+
+Start-Sleep -Seconds 5
+refreshenv
+Start-Sleep -Seconds 5
+
 foreach ($item in $Pip) {
     Install-PipPackage -Package "$item"
 }
