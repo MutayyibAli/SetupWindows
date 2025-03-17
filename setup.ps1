@@ -54,7 +54,6 @@ $WinGet = @(
     # Microsoft Apps
     "Microsoft.AppInstaller", # App Installer
     "Microsoft.Edge", # Web Browser
-    "Microsoft.Teams", # Video Conferencing Tool
     "Microsoft.OneDrive", # Cloud Storage
     "Microsoft.WindowsTerminal", # Terminal Emulator
     "Microsoft.PowerShell", # PowerShell 7
