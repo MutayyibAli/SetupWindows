@@ -368,7 +368,7 @@ Write-Host "Installing Packages..."
 New-Step
 Write-Host "Installing WinGet Packages..."
 foreach ($item in $WinGet) {
-    Install-ScoopApp -Package "$item"
+    Install-WinGetApp -Package "$item"
 }
 
 # Install Scoop Packages
@@ -384,7 +384,7 @@ choco feature enable -n=allowGlobalConfirmation
 choco feature disable checksumFiles
 Write-Host "Installing Chocolatey Packages..."
 foreach ($item in $Choco) {
-    Install-ScoopApp -Package "$item"
+    Install-ChocoApp -Package "$item"
 }
 
 # Remove unused Packages/Applications
