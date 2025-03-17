@@ -578,6 +578,10 @@ if ($install) {
 
     # Install Scoop Packages
     New-Step
+		Start-Sleep -Seconds 5
+    refreshenv
+    Start-Sleep -Seconds 5
+
     Write-Host "Installing Scoop Packages with Buckets..."
     foreach ($item in $Scoop) {
         Install-ScoopApp -Bucket $item[0] -Package $item[1]
