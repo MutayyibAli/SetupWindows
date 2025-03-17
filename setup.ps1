@@ -109,10 +109,10 @@ $WinGet = @(
 
 # Scoop Packages
 $Scoop = @(
-    @("main", "main/scoop-search"), # Scoop Search Plugin
-    @("nerd-fonts", "nerd-fonts/Hack-NF"), # Nerd Fonts --requires Starship
-    @("extras", "extras/driverstoreexplorer"), # Driver Store Explorer
-    @("extras", "extras/sysinternals") # Driver Store Explorer
+    @("main", "scoop-search"), # Scoop Search Plugin
+    @("nerd-fonts", "Hack-NF"), # Nerd Fonts --requires Starship
+    @("extras", "driverstoreexplorer"), # Driver Store Explorer
+    @("extras", "sysinternals") # Driver Store Explorer
 )
 
 # Chocolatey Packages
