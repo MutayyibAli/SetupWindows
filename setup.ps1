@@ -625,6 +625,7 @@ if ($install) {
     Start-Sleep -Seconds 5
 
     pip install --upgrade pip
+    python.exe -m pip install --upgrade pip
 
     foreach ($item in $Pip) {
         Install-PipPackage -Package "$item"
@@ -659,6 +660,8 @@ Write-Host "Upgrading Chocolatey Apps..."
 choco feature enable -n=allowGlobalConfirmation
 choco feature disable checksumFiles
 choco upgrade all
+python.exe -m pip install --upgrade pip
+pip --disable-pip-version-check list --outdated --format=json | python -c "import json, sys; print('\n'.join([x['name'] for x in json.load(sys.stdin)]))" | xargs -n1 pip install -U
 
 # ======================================================================================================================
 # ======================================================================================================================
