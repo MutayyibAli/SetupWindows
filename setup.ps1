@@ -342,7 +342,7 @@ New-Step
 Write-Host "Checking Chocolatey..."
 New-SubStep
 # Check if Chocolatey is already installed
-if ( GTest-Command -Command "choco" ) {
+if ( Test-Command -Command "choco" ) {
     Write-Host "Chocolatey already installed! Skipping..."
 }
 else {
