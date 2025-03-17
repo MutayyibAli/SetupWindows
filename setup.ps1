@@ -433,7 +433,7 @@ if ($setup) {
     #Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
     New-Step
     Write-Host "Setting Execution Policy for Current Process..."
-    Set-ExecutionPolicy Bypass -Scope Process -Force
+    Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
     # Configure Power Plan
     New-Step
