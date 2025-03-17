@@ -27,7 +27,18 @@ $WinGet = @(
     "Opera.Opera",
 
     # Windows Tools
-    "abbodi1406.vcredist", # Microsoft Visual C++ Bundle
+    "Microsoft.VCRedist.2005.x86",
+    "Microsoft.VCRedist.2005.x64",
+    "Microsoft.VCRedist.2008.x86",
+    "Microsoft.VCRedist.2008.x64",
+    "Microsoft.VCRedist.2010.x86",
+    "Microsoft.VCRedist.2010.x64",
+    "Microsoft.VCRedist.2012.x86",
+    "Microsoft.VCRedist.2012.x64",
+    "Microsoft.VCRedist.2013.x86",
+    "Microsoft.VCRedist.2013.x64",
+    "Microsoft.VCRedist.2015+.x86",
+    "Microsoft.VCRedist.2015+.x64",
     "Microsoft.DotNet.Runtime.5",
     "Microsoft.DotNet.Runtime.6",
     "Microsoft.DotNet.Runtime.7",
@@ -107,6 +118,26 @@ $Choco = @(
     "geforce-experience", # Nvidia GeForce Experience
     "geforce-game-ready-driver", # Nvidia GeForce Game Ready Driver
     "rockstar-launcher" # Rockstar Games Launcher
+)
+
+# Pip Packages
+$Pip = @(
+    # General Python
+    "coverage", # Code Coverage Tool
+    
+    # Data Science
+    "numpy", # Numerical Python
+    "pandas", # Data Analysis Library
+    "matplotlib", # Data Visualization Library
+    "seaborn", # Data Visualization Library
+
+    # Machine Learning
+    "scikit-learn", # Machine Learning Library
+    "scipy", # Scientific Computing Library
+
+    # Web Development
+    "flask", # Web App Library
+    "django", # Web App Library
 )
 
 # Applications to be removed
