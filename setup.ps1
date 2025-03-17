@@ -60,6 +60,8 @@ $WinGet = @(
     "Microsoft.PowerShell", # PowerShell 7
     "Microsoft.PowerToys", # Windows Utilities
     "Microsoft.WSL", # Windows Subsystem for Linux
+    "Microsoft.NuGet", #.NET Package Manager
+    "MartiCliment.UniGetUI", # Windows Package Manager
 
     # Utilities
     "Adobe.CreativeCloud", # Adobe Creative Cloud --requires Crack
