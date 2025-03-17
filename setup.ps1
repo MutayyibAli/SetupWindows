@@ -386,6 +386,33 @@ else {
     Write-Host "Running as Administrator"
 }
 
+# Check first time running
+New-Section
+Write-Host "Checking First Time Running..."
+New-Step
+$selection = Read-Host "Please type YES if this is the first time running the script else PRESS ENTER"
+$setup = $true
+if ($selection.ToLower() -eq "") {
+    $setup = $false
+    $install = $true
+    $select = Read-Host "Please type YES if you want to install app else PRESS ENTER (Upgrade Only)"
+    if ($select.ToLower() -eq "") {
+        $install = $false
+    }
+    else {
+        if ($select.ToLower() -ne "yes") {
+            Write-Host "Invalid Input! Exiting..." -ForegroundColor Red -BackgroundColor White
+            Exit 1
+        }
+    }
+}
+else {
+    if ($selection.ToLower() -ne "yes") {
+        Write-Host "Invalid Input! Exiting..." -ForegroundColor Red -BackgroundColor White
+        Exit 1
+    }
+}
+
 # Check PC
 New-Section
 Write-Host "Checking PC..."
@@ -398,181 +425,165 @@ else {
     Write-Host "Secondary PC Detected"
 }
 
+if ($setup) {
+    ## Update Windows
+    New-Section
+    Write-Host "Updating Windows"
+    New-Step
+    Install-Module -Name PSWindowsUpdate -Force
+    New-Step
+    Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
 
-## Configure Windows Settings
-New-Section
-Write-Host "Configuring Windows Settings..."
-#Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
-New-Step
-Write-Host "Setting Execution Policy for Current Process..."
-Set-ExecutionPolicy Bypass -Scope Process -Force
+    ## Configure Windows Settings
+    New-Section
+    Write-Host "Configuring Windows Settings..."
+    #Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
+    New-Step
+    Write-Host "Setting Execution Policy for Current Process..."
+    Set-ExecutionPolicy Bypass -Scope Process -Force
 
-# Configure Power Plan
-New-Step
-Write-Host "Configuring Power Plan..."
-New-SubStep
-Write-Host "Setting Power Plan to High Performance..."
-powercfg.exe -SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
-New-SubStep
-Write-Host "Setting Sleep Timeout to 30 minutes..."
-Write-Host "Setting Standby Timeout to 0 minutes..."
-Write-Host "Setting Hibernate Timeout to 0 minutes..."
-powercfg -change -monitor-timeout-ac 30
-powercfg -change -standby-timeout-ac 0
-powercfg -change -hibernate-timeout-ac 0
-
-# Configure Windows Settings
-New-Step
-Write-Host "Configuring Windows Settings..."
-New-SubStep
-# https://github.com/Raphire/Win11Debloat
-& ([scriptblock]::Create((irm "https://debloat.raphi.re/"))) -Silent `
-    -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
-    -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
-    -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
-    -ExplorerToThisPC
-# Options
-# -Silent                       : Suppresses all interactive prompts, so the script will run without requiring any user input.
-# -RunDefaults	                : Run the script with the default settings.
-# -RemoveApps	                : Remove the bloatware apps.
-# -RemoveCommApps	            : Remove the Mail, Calendar, and People apps.
-# -DisableDVR	                : Disable Xbox game/screen recording feature & stop gaming overlay popups.
-# -ClearStart                  : Remove all pinned apps from start.
-# -DisableTelemetry	            : Disable telemetry, diagnostic data & targeted ads.
-# -DisableSuggestions	        : Disable tips, tricks, suggestions and ads in start, settings, notifications and File Explorer.
-# -DisableDesktopSpotlight	    : Disable the 'Windows Spotlight' desktop background option.
-# -DisableLockscreenTips	    : Disable tips & tricks on the lockscreen.
-# -DisableBing	                : Disable & remove Bing web search in Windows search.
-# -ShowHiddenFolders	        : Show hidden files, folders and drives.
-# -ShowKnownFileExt	            : Show file extensions for known file types.
-# -HideDupliDrive	            : Hide duplicate removable drive entries from the File Explorer navigation pane, so only the entry under 'This PC' remains.
-# -TaskbarAlignLeft	            : Align taskbar icons to the left.
-# -ShowSearchIconTb	            : Show search icon on the taskbar.
-# -DisableStartRecommended      : Disable & hide the recommended section in the start menu. This will also change the start menu layout to More pins.
-# -HideHome	                    : Hide the home section from the File Explorer navigation pane and add a toggle in the File Explorer folder options.
-# -HideGallery	                : Hide the gallery section from the File Explorer navigation pane and add a toggle in the File Explorer folder options.
-# -ExplorerToThisPC	            : Changes the page that File Explorer opens to This PC.
-
-# Configure Folder Options
-New-Step
-Write-Host "Configuring Folder Options..."
-New-SubStep
-$key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-Write-Host "Disable show hidden files"
-Set-ItemProperty $key Hidden 1
-New-SubStep
-Write-Host "Showing extensions"
-Set-ItemProperty $key HideFileExt 0
-
-# Enable Windows Features
-New-Step
-Write-Host "Enabling Windows Features..."
-New-SubStep
-Write-Host "Enabling Windows Sandbox..."
-Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
-New-SubStep
-Write-Host "Enabling Windows Subsystem for Linux..."
-Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
-
-## Install Package Managers
-New-Section
-Write-Host "Installing Package Managers..."
-
-# Install WinGet
-New-Step
-Write-Host "Checking WinGet..."
-New-SubStep
-if (Get-AppPackage -name "Microsoft.DesktopAppInstaller") {
-    Write-Host "WinGet already installed!"
-    Write-Host "Installing GUI"
+    # Configure Power Plan
+    New-Step
+    Write-Host "Configuring Power Plan..."
     New-SubStep
-    Install-WinGetApp -Package "MartiCliment.UniGetUI"
+    Write-Host "Setting Power Plan to High Performance..."
+    powercfg.exe -SETACTIVE 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
     New-SubStep
-    Write-Host "Installing Widgets"
-    Install-WinGetApp -Package "9NB9M5KZ8SLX"
-}
-else {
-    Write-Host "You should have Windows 11 to use WinGet"
-    Exit 1
-}
+    Write-Host "Setting Sleep Timeout to 30 minutes..."
+    Write-Host "Setting Standby Timeout to 0 minutes..."
+    Write-Host "Setting Hibernate Timeout to 0 minutes..."
+    powercfg -change -monitor-timeout-ac 30
+    powercfg -change -standby-timeout-ac 0
+    powercfg -change -hibernate-timeout-ac 0
 
-# Install Scoop
-New-Step
-Write-Host "Checking Scoop..."
-New-SubStep
-# Check if Scoop is already installed
-if ( Test-Command -Command "scoop" ) {
-    Write-Host "Scoop already installed! Skipping..."
-}
-else {
-    Write-Host "Installing Scoop..."
+    # Configure Windows Settings
+    New-Step
+    Write-Host "Configuring Windows Settings..."
     New-SubStep
-    Invoke-Expression "& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin"
-}
+    # https://github.com/Raphire/Win11Debloat
+    & ([scriptblock]::Create((irm "https://debloat.raphi.re/"))) -Silent `
+        -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
+        -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
+        -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
+        -ExplorerToThisPC
+    # Options
+    # -Silent                       : Suppresses all interactive prompts, so the script will run without requiring any user input.
+    # -RunDefaults	                : Run the script with the default settings.
+    # -RemoveApps	                : Remove the bloatware apps.
+    # -RemoveCommApps	            : Remove the Mail, Calendar, and People apps.
+    # -DisableDVR	                : Disable Xbox game/screen recording feature & stop gaming overlay popups.
+    # -ClearStart                  : Remove all pinned apps from start.
+    # -DisableTelemetry	            : Disable telemetry, diagnostic data & targeted ads.
+    # -DisableSuggestions	        : Disable tips, tricks, suggestions and ads in start, settings, notifications and File Explorer.
+    # -DisableDesktopSpotlight	    : Disable the 'Windows Spotlight' desktop background option.
+    # -DisableLockscreenTips	    : Disable tips & tricks on the lockscreen.
+    # -DisableBing	                : Disable & remove Bing web search in Windows search.
+    # -ShowHiddenFolders	        : Show hidden files, folders and drives.
+    # -ShowKnownFileExt	            : Show file extensions for known file types.
+    # -HideDupliDrive	            : Hide duplicate removable drive entries from the File Explorer navigation pane, so only the entry under 'This PC' remains.
+    # -TaskbarAlignLeft	            : Align taskbar icons to the left.
+    # -ShowSearchIconTb	            : Show search icon on the taskbar.
+    # -DisableStartRecommended      : Disable & hide the recommended section in the start menu. This will also change the start menu layout to More pins.
+    # -HideHome	                    : Hide the home section from the File Explorer navigation pane and add a toggle in the File Explorer folder options.
+    # -HideGallery	                : Hide the gallery section from the File Explorer navigation pane and add a toggle in the File Explorer folder options.
+    # -ExplorerToThisPC	            : Changes the page that File Explorer opens to This PC.
 
-# Install Chocolatey
-New-Step
-Write-Host "Checking Chocolatey..."
-New-SubStep
-# Check if Chocolatey is already installed
-if ( Test-Command -Command "choco" ) {
-    Write-Host "Chocolatey already installed! Skipping..."
-}
-else {
-    Write-Host "Installing Chocolatey..."
+    # Configure Folder Options
+    New-Step
+    Write-Host "Configuring Folder Options..."
     New-SubStep
-    winget install --id "Chocolatey.Chocolatey" --exact --source winget --accept-source-agreements --disable-interactivity --silent  --accept-package-agreements --force
-    winget install --id "Chocolatey.ChocolateyGUI" --exact --source winget --accept-source-agreements --disable-interactivity --silent --accept-package-agreements --force
-    # iwr -useb chocolatey.org/install.ps1 | iex
-    # Invoke-WebRequest -useb chocolatey.org/install.ps1 | Invoke-Expression
+    $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+    Write-Host "Disable show hidden files"
+    Set-ItemProperty $key Hidden 1
+    New-SubStep
+    Write-Host "Showing extensions"
+    Set-ItemProperty $key HideFileExt 0
+
+    # Enable Windows Features
+    New-Step
+    Write-Host "Enabling Windows Features..."
+    New-SubStep
+    Write-Host "Enabling Windows Sandbox..."
+    Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
+    New-SubStep
+    Write-Host "Enabling Windows Subsystem for Linux..."
+    Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
+
+    ## Install Package Managers
+    New-Section
+    Write-Host "Installing Package Managers..."
+
+    # Install WinGet
+    New-Step
+    Write-Host "Checking WinGet..."
+    New-SubStep
+    if (Get-AppPackage -name "Microsoft.DesktopAppInstaller") {
+        Write-Host "WinGet already installed!"
+        Write-Host "Installing GUI"
+        New-SubStep
+        Install-WinGetApp -Package "MartiCliment.UniGetUI"
+        New-SubStep
+        Write-Host "Installing Widgets"
+        Install-WinGetApp -Package "9NB9M5KZ8SLX"
+    }
+    else {
+        Write-Host "You should have Windows 11 to use WinGet"
+        Exit 1
+    }
+
+    # Install Scoop
+    New-Step
+    Write-Host "Checking Scoop..."
+    New-SubStep
+    # Check if Scoop is already installed
+    if ( Test-Command -Command "scoop" ) {
+        Write-Host "Scoop already installed! Skipping..."
+    }
+    else {
+        Write-Host "Installing Scoop..."
+        New-SubStep
+        Invoke-Expression "& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin"
+    }
+
+    # Install Chocolatey
+    New-Step
+    Write-Host "Checking Chocolatey..."
+    New-SubStep
+    # Check if Chocolatey is already installed
+    if ( Test-Command -Command "choco" ) {
+        Write-Host "Chocolatey already installed! Skipping..."
+    }
+    else {
+        Write-Host "Installing Chocolatey..."
+        New-SubStep
+        winget install --id "Chocolatey.Chocolatey" --exact --source winget --accept-source-agreements --disable-interactivity --silent  --accept-package-agreements --force
+        winget install --id "Chocolatey.ChocolateyGUI" --exact --source winget --accept-source-agreements --disable-interactivity --silent --accept-package-agreements --force
+        # iwr -useb chocolatey.org/install.ps1 | iex
+        # Invoke-WebRequest -useb chocolatey.org/install.ps1 | Invoke-Expression
+    }
 }
-
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
 
-## Install/Uninstall selected packages
-New-Section
-Write-Host "Installing Packages..."
+if ($install) {
+    ## Install/Uninstall selected packages
+    New-Section
+    Write-Host "Installing Packages..."
 
-# Install WinGet Packages
-New-Step
-Write-Host "Installing WinGet Packages..."
-foreach ($item in $WinGet) {
-    Install-WinGetApp -Package "$item"
-}
-
-# Install Scoop Packages
-New-Step
-Write-Host "Installing Scoop Packages with Buckets..."
-foreach ($item in $Scoop) {
-    Install-ScoopApp -Bucket $item[0] -Package $item[1]
-}
-
-# Install Chocolatey Packages
-New-Step
-choco feature enable -n=allowGlobalConfirmation
-choco feature disable checksumFiles
-Write-Host "Installing Chocolatey Packages..."
-foreach ($item in $Choco) {
-    Install-ChocoApp -Package "$item"
-}
-
-# If Main PC then install Gaming Apps
-if ($MainPC) {
     # Install WinGet Packages
     New-Step
     Write-Host "Installing WinGet Packages..."
-    foreach ($item in $WinGetG) {
+    foreach ($item in $WinGet) {
         Install-WinGetApp -Package "$item"
     }
 
     # Install Scoop Packages
     New-Step
     Write-Host "Installing Scoop Packages with Buckets..."
-    foreach ($item in $ScoopG) {
+    foreach ($item in $Scoop) {
         Install-ScoopApp -Bucket $item[0] -Package $item[1]
     }
 
@@ -581,114 +592,155 @@ if ($MainPC) {
     choco feature enable -n=allowGlobalConfirmation
     choco feature disable checksumFiles
     Write-Host "Installing Chocolatey Packages..."
-    foreach ($item in $ChocoG) {
+    foreach ($item in $Choco) {
         Install-ChocoApp -Package "$item"
+    }
+
+    # If Main PC then install Gaming Apps
+    if ($MainPC) {
+        # Install WinGet Packages
+        New-Step
+        Write-Host "Installing WinGet Packages..."
+        foreach ($item in $WinGetG) {
+            Install-WinGetApp -Package "$item"
+        }
+
+        # Install Scoop Packages
+        New-Step
+        Write-Host "Installing Scoop Packages with Buckets..."
+        foreach ($item in $ScoopG) {
+            Install-ScoopApp -Bucket $item[0] -Package $item[1]
+        }
+
+        # Install Chocolatey Packages
+        New-Step
+        choco feature enable -n=allowGlobalConfirmation
+        choco feature disable checksumFiles
+        Write-Host "Installing Chocolatey Packages..."
+        foreach ($item in $ChocoG) {
+            Install-ChocoApp -Package "$item"
+        }
+    }
+
+    # Install Pip Packages
+    New-Step
+    Write-Host "Installing Pip Packages..."
+
+    Start-Sleep -Seconds 5
+    refreshenv
+    Start-Sleep -Seconds 5
+
+    pip install --upgrade pip
+
+    foreach ($item in $Pip) {
+        Install-PipPackage -Package "$item"
+    }
+}
+
+if ($setup) {
+    # Remove unused Packages/Applications
+    New-Step
+    Write-Host "Removing Unused Applications..."
+    foreach ($item in $Remove) {
+        Remove-InstalledApp -Package $item
+    }
+
+    # Remove unused Packages/Applications by Name
+    New-Step
+    Write-Host "Removing Unused Applications..."
+    foreach ($name in $RemoveName) {
+        Remove-InstalledApp -Name $name
     }
 }
 
 # Upgrade Apps
+New-Section
+Write-Host "Upgrading Windows..."
+Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
 New-Step
-Write-Host "Upgrading Apps..."
+Write-Host "Upgrading WinGet Apps..."
 winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
+New-Step
+Write-Host "Upgrading Scoop Apps..."
 scoop update *
+New-Step
+Write-Host "Upgrading Chocolatey Apps..."
 choco feature enable -n=allowGlobalConfirmation
 choco feature disable checksumFiles
 choco upgrade all
 
-# Install Pip Packages
-New-Step
-Write-Host "Installing Pip Packages..."
-
-Start-Sleep -Seconds 5
-refreshenv
-Start-Sleep -Seconds 5
-
-pip install --upgrade pip
-
-foreach ($item in $Pip) {
-    Install-PipPackage -Package "$item"
-}
-
-# Remove unused Packages/Applications
-New-Step
-Write-Host "Removing Unused Applications..."
-foreach ($item in $Remove) {
-    Remove-InstalledApp -Package $item
-}
-
-# Remove unused Packages/Applications by Name
-New-Step
-Write-Host "Removing Unused Applications..."
-foreach ($name in $RemoveName) {
-    Remove-InstalledApp -Name $name
-}
-
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
-
-## Configure installed applications
-New-Section
-Start-Sleep -Seconds 5
-refreshenv
-Start-Sleep -Seconds 5
-
-# Configure Git
-New-Step
-Write-Host "Configuring Git..."
-git config --global user.name "Mutayyib Ali"
-git config --global user.email "mutayyibali@gmail.com"
-
-# Configure PowerShell
-New-Step
-Write-Host "Configuring PowerShell..."
-$settings = "$HOME\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json"
-$json = Get-Content -Raw $settings | ConvertFrom-Json
-Write-Host $json
-$json.profiles.list | ForEach-Object {
-    if ($_.name -eq "PowerShell") {
-        $json.defaultProfile = $_.guid
+if ($setup) {
+    ## Configure installed applications
+    New-Section
+    Start-Sleep -Seconds 5
+    refreshenv
+    Start-Sleep -Seconds 5
+   
+    # Configure Git
+    New-Step
+    Write-Host "Configuring Git..."
+    if ($MainPC) {
+        $MyName = "Mutayyib-PC"
     }
+    else {
+        $MyName = "Mutayyib-HP"
+    }
+    git config --global user.name $MyName
+    git config --global user.email "mutayyibali@gmail.com"
+
+    # Configure PowerShell
+    New-Step
+    Write-Host "Configuring PowerShell..."
+    $settings = "$HOME\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json"
+    $json = Get-Content -Raw $settings | ConvertFrom-Json
+    Write-Host $json
+    $json.profiles.list | ForEach-Object {
+        if ($_.name -eq "PowerShell") {
+            $json.defaultProfile = $_.guid
+        }
+    }
+    $json | ConvertTo-Json -Depth 10 | Out-File -Encoding utf8 $settings
+
+    ## Configure Starship
+    New-Step
+    Write-Host "Configuring Starship..."
+
+    # For Windows Terminal
+    $myProfile = $Profile
+    New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $myProfile -Force
+    # For Powershell 7
+    $newProfile = $myProfile.Replace('WindowsPowerShell', 'PowerShell')
+    New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $newProfile -Force
+    # For Bash
+    New-Item -ItemType file -Value 'eval "$(starship init bash)"' -Path "$HOME/.bashrc" -Force
+
+    #Set Theme
+    New-SubStep
+    Write-Host "Setting Theme"
+    starship preset pastel-powerline -o "$HOME/.config/starship.toml"
+
+    # Configure WSL
+    New-Step
+    Write-Host "Configuring WSL"
+    if (!(Test-Command -Command "wsl")) {
+        Write-Host "Installing Windows SubSystems for Linux..."
+        wsl --install
+    }
+    New-SubStep
+    Write-Host "Installing Ubuntu in WSL"
+    New-SubStep
+    wsl --install -d Ubuntu
+    Write-Host "Installation complete!"
+
+    # Crack Microsoft Office
+    New-Step
+    irm https://get.activated.win | iex
 }
-$json | ConvertTo-Json -Depth 10 | Out-File -Encoding utf8 $settings
-
-## Configure Starship
-New-Step
-Write-Host "Configuring Starship..."
-
-# For Windows Terminal
-$myProfile = $Profile
-New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $myProfile -Force
-# For Powershell 7
-$newProfile = $myProfile.Replace('WindowsPowerShell', 'PowerShell')
-New-Item -ItemType file -Value "Invoke-Expression (&starship init powershell)" -Path $newProfile -Force
-# For Bash
-New-Item -ItemType file -Value 'eval "$(starship init bash)"' -Path "$HOME/.bashrc" -Force
-
-#Set Theme
-New-SubStep
-Write-Host "Setting Theme"
-starship preset pastel-powerline -o "$HOME/.config/starship.toml"
-
-# Configure WSL
-New-Step
-Write-Host "Configuring WSL"
-if (!(Test-Command -Command "wsl")) {
-    Write-Host "Installing Windows SubSystems for Linux..."
-    wsl --install
-}
-New-SubStep
-Write-Host "Installing Ubuntu in WSL"
-New-SubStep
-wsl --install -d Ubuntu
-Write-Host "Installation complete!"
-
-# Crack Microsoft Office
-New-Step
-irm https://get.activated.win | iex
-
 New-Step
 Write-Host "Restart Computer"
 Start-Sleep -Seconds 10
