@@ -403,7 +403,7 @@ Write-Host "Configuring Windows Settings..."
 New-SubStep
 # https://github.com/Raphire/Win11Debloat
 & ([scriptblock]::Create((irm "https://debloat.raphi.re/"))) -Silent `
-        -RemoveApps -RemoveCommApps -DisableDVR -ClearStartAllUsers -DisableTelemetry -DisableSuggestions `
+        -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
         -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
         -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
         -ExplorerToThisPC
@@ -413,7 +413,7 @@ New-SubStep
 # -RemoveApps	                : Remove the bloatware apps.
 # -RemoveCommApps	            : Remove the Mail, Calendar, and People apps.
 # -DisableDVR	                : Disable Xbox game/screen recording feature & stop gaming overlay popups.
-# -ClearStartAllUsers           : Remove all pinned apps from start for all existing and new users.
+# -ClearStart                  : Remove all pinned apps from start.
 # -DisableTelemetry	            : Disable telemetry, diagnostic data & targeted ads.
 # -DisableSuggestions	        : Disable tips, tricks, suggestions and ads in start, settings, notifications and File Explorer.
 # -DisableDesktopSpotlight	    : Disable the 'Windows Spotlight' desktop background option.
