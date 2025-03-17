@@ -304,10 +304,10 @@ if (Get-AppPackage -name "Microsoft.DesktopAppInstaller") {
     Write-Host "WinGet already installed!"
     Write-Host "Installing GUI"
     New-SubStep
-    winget install --id "MartiCliment.UniGetUI" --exact --source winget --accept-source-agreements --disable-interactivity --silent --accept-package-agreements --force
+    Install-WinGetApp -Package "MartiCliment.UniGetUI"
     New-SubStep
     Write-Host "Installing Widgets"
-    winget install --id "9NB9M5KZ8SLX" --exact --source msstore --accept-source-agreements --disable-interactivity --silent  --accept-package-agreements --force
+    Install-WinGetApp -Package "9NB9M5KZ8SLX"
 }
 else {
     Write-Host "You should have Windows 11 to use WinGet"
