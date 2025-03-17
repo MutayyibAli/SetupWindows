@@ -553,6 +553,8 @@ Start-Sleep -Seconds 5
 refreshenv
 Start-Sleep -Seconds 5
 
+pip install --upgrade pip
+
 foreach ($item in $Pip) {
     Install-PipPackage -Package "$item"
 }
