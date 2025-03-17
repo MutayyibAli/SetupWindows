@@ -428,6 +428,14 @@ else {
 }
 
 if ($setup) {
+    ## Configure Windows Settings
+    New-Section
+    Write-Host "Configuring Windows Settings..."
+    #Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
+    New-Step
+    Write-Host "Setting Execution Policy for Current Process..."
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+
     ## Update Windows
     New-Section
     Write-Host "Updating Windows"
@@ -441,14 +449,6 @@ if ($setup) {
     Install-Module -Name PSWindowsUpdate -Force
     New-Step
     Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot
-
-    ## Configure Windows Settings
-    New-Section
-    Write-Host "Configuring Windows Settings..."
-    #Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
-    New-Step
-    Write-Host "Setting Execution Policy for Current Process..."
-    Set-ExecutionPolicy Bypass -Scope Process -Force
 
     # Configure Power Plan
     New-Step
