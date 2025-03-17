@@ -149,7 +149,7 @@ $Pip = @(
     "flask", # Web App Library
     "django", # Web App Library
     "requests", # HTTP Library
-    "beautifulsoup4", # Web Scraping Library
+    "beautifulsoup4" # Web Scraping Library
 )
 
 # Applications to be removed
