@@ -496,10 +496,12 @@ if ($setup) {
     # Enable Windows Features
     New-Step
     Write-Host "Enabling Windows Features..."
-    New-SubStep
-    Write-Host "Enabling Windows Sandbox..."
-    Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
-    New-SubStep
+    if ($MainPC) {
+	    New-SubStep
+	    Write-Host "Enabling Windows Sandbox..."
+	    Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
+    }
+		New-SubStep
     Write-Host "Enabling Windows Subsystem for Linux..."
     Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
 
