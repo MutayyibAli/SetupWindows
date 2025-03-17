@@ -262,6 +262,19 @@ function Remove-InstalledApp {
 # ======================================================================================================================
 # ======================================================================================================================
 
+# Request administrator rights
+New-Section
+Write-Host "Checking Administrator Rights..."
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent() `
+    ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Running as Standard User"
+    Write-Host "Please run the script as Administrator"
+    Exit 1
+}
+else {
+    Write-Host "Running as Administrator"
+}
+
 ## Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
 New-Section
 Write-Host "Setting Execution Policy for Current Process..."
