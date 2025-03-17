@@ -143,7 +143,7 @@ function New-Step {
 # Print a line on the console between sub-steps
 function New-SubStep {
     for ($i = 1; $i -le $width; $i++) {
-        Write-Host "-"
+        Write-Host "-" -NoNewline
     }
     Write-Host ""
 }
