@@ -524,7 +524,7 @@ foreach ($item in $WinGet) {
 New-Step
 Write-Host "Installing Scoop Packages with Buckets..."
 foreach ($item in $Scoop) {
-    Install-ScoopApp -Bucket $item[1] -Package $item[0]
+    Install-ScoopApp -Bucket $item[0] -Package $item[1]
 }
 
 # Install Chocolatey Packages
