@@ -436,20 +436,6 @@ if ($setup) {
     Write-Host "Setting Execution Policy for Current Process..."
     Set-ExecutionPolicy Bypass -Scope Process -Force
 
-    ## Update Windows
-    New-Section
-    Write-Host "Updating Windows"
-    New-Step
-    Install-WinGetApp -Package "Microsoft.NuGet"
-    
-    Start-Sleep -Seconds 15
-    refreshenv
-    Start-Sleep -Seconds 15
-
-    Install-Module -Name PSWindowsUpdate -Force
-    New-Step
-    Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot
-
     # Configure Power Plan
     New-Step
     Write-Host "Configuring Power Plan..."
@@ -663,9 +649,6 @@ if ($setup) {
 
 # Upgrade Apps
 New-Section
-Write-Host "Upgrading Windows..."
-Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot
-New-Step
 Write-Host "Upgrading WinGet Apps..."
 winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
 New-Step
