@@ -392,9 +392,9 @@ Write-Host "Checking First Time Running..."
 New-Step
 $selection = Read-Host "Please type YES if this is the first time running the script else PRESS ENTER"
 $setup = $true
+$install = $true
 if ($selection.ToLower() -eq "") {
     $setup = $false
-    $install = $true
     $select = Read-Host "Please type YES if you want to install app else PRESS ENTER (Upgrade Only)"
     if ($select.ToLower() -eq "") {
         $install = $false
@@ -430,6 +430,12 @@ if ($setup) {
     New-Section
     Write-Host "Updating Windows"
     New-Step
+    Install-WinGetApp -Package "Microsoft.NuGet"
+    
+    Start-Sleep -Seconds 15
+    refreshenv
+    Start-Sleep -Seconds 15
+
     Install-Module -Name PSWindowsUpdate -Force
     New-Step
     Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
