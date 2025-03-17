@@ -23,10 +23,10 @@ $WinGet = @(
     # Browsers
     "Google.Chrome",
     "Mozilla.Firefox",
-    "Microsoft.Edge",
     "Opera.Opera",
 
     # Windows Tools
+    "Microsoft.VCLibs.Desktop.14",
     "Microsoft.VCRedist.2005.x86",
     "Microsoft.VCRedist.2005.x64",
     "Microsoft.VCRedist.2008.x86",
@@ -49,16 +49,23 @@ $WinGet = @(
     "Microsoft.DotNet.DesktopRuntime.7",
     "Microsoft.DotNet.DesktopRuntime.8",
     "Microsoft.DotNet.DesktopRuntime.9",
+    "Microsoft.UI.Xaml.2.8",
 
-    # Utilities
-    "Adobe.CreativeCloud", # Adobe Creative Cloud --requires Crack
-    "Microsoft.Office", # Microsoft Office --requires Crack
-    "Tonec.InternetDownloadManager", # Download Manager --requires Crack
+    # Microsoft Apps
+    "Microsoft.AppInstaller", # App Installer
+    "Microsoft.Edge", # Web Browser
+    "Microsoft.Teams", # Video Conferencing Tool
     "Microsoft.OneDrive", # Cloud Storage
     "Microsoft.WindowsTerminal", # Terminal Emulator
     "Microsoft.PowerShell", # PowerShell 7
     "Microsoft.PowerToys", # Windows Utilities
     "Microsoft.WSL", # Windows Subsystem for Linux
+    "Microsoft.DevHome", # Windows Dev Home
+
+    # Utilities
+    "Adobe.CreativeCloud", # Adobe Creative Cloud --requires Crack
+    "Microsoft.Office", # Microsoft Office --requires Crack
+    "Tonec.InternetDownloadManager", # Download Manager --requires Crack
     "VideoLAN.VLC", # Media Player
     "LocalSend.LocalSend", # File Transfer Tool
     "Apple.iTunes", # iOS Device Manager
