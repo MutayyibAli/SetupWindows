@@ -576,12 +576,11 @@ if ($install) {
         Install-WinGetApp -Package "$item"
     }
 
+    # Refresh envirnment variables
+    $Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
     # Install Scoop Packages
     New-Step
-		Start-Sleep -Seconds 5
-    refreshenv
-    Start-Sleep -Seconds 5
-
     Write-Host "Installing Scoop Packages with Buckets..."
     foreach ($item in $Scoop) {
         Install-ScoopApp -Bucket $item[0] -Package $item[1]
@@ -625,10 +624,6 @@ if ($install) {
     # Install Pip Packages
     New-Step
     Write-Host "Installing Pip Packages..."
-
-    Start-Sleep -Seconds 5
-    refreshenv
-    Start-Sleep -Seconds 5
 
     pip install --upgrade pip
     python.exe -m pip install --upgrade pip
@@ -676,10 +671,7 @@ python.exe -m pip install --upgrade pip
 if ($setup) {
     ## Configure installed applications
     New-Section
-    Start-Sleep -Seconds 5
-    refreshenv
-    Start-Sleep -Seconds 5
-   
+
     # Configure Git
     New-Step
     Write-Host "Configuring Git..."
