@@ -100,7 +100,7 @@ $Scoop = @(
     @("main", "main/scoop-search"), # Scoop Search Plugin
     @("nerd-fonts", "nerd-fonts/Hack-NF"), # Nerd Fonts --requires Starship
     @("extras", "extras/driverstoreexplorer"), # Driver Store Explorer
-    @("extras", "extras/sysinternals"), # Driver Store Explorer
+    @("extras", "extras/sysinternals") # Driver Store Explorer
 )
 
 # Chocolatey Packages
@@ -313,7 +313,7 @@ if ( Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyCon
 else {
     Write-Host "Installing Scoop..."
     New-SubStep
-    iwr -useb get.scoop.sh | iex
+    Invoke-WebRequest -useb get.scoop.sh | Invoke-Expression
 }
 
 # Install Chocolatey
@@ -330,6 +330,7 @@ else {
     winget install --id "Chocolatey.Chocolatey" --exact --source winget --accept-source-agreements --disable-interactivity --silent  --accept-package-agreements --force
     winget install --id "Chocolatey.ChocolateyGUI" --exact --source winget --accept-source-agreements --disable-interactivity --silent --accept-package-agreements --force
     # iwr -useb chocolatey.org/install.ps1 | iex
+    # Invoke-WebRequest -useb chocolatey.org/install.ps1 | Invoke-Expression
 }
 
 # ======================================================================================================================
@@ -396,13 +397,11 @@ Write-Host "Configuring PowerShell..."
 $settings = "$HOME\AppData\Local\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json"
 $json = Get-Content -Raw $settings | ConvertFrom-Json
 Write-Host $json
-$guid = ""
 $json.profiles.list | ForEach-Object {
     if ($_.name -eq "PowerShell") {
-        $guid = $_.guid
+        $json.defaultProfile = $_.guid
     }
 }
-$json.defaultProfile = $guid
 $json | ConvertTo-Json -Depth 10 | Out-File -Encoding utf8 $settings
 
 # Configure Starship
