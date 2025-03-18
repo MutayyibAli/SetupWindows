@@ -54,12 +54,13 @@ $WinGet = @(
     # Microsoft Apps
     "Microsoft.AppInstaller", # App Installer
     "Microsoft.Edge", # Web Browser
-    "Microsoft.Teams", # Video Conferencing Tool
     "Microsoft.OneDrive", # Cloud Storage
     "Microsoft.WindowsTerminal", # Terminal Emulator
     "Microsoft.PowerShell", # PowerShell 7
     "Microsoft.PowerToys", # Windows Utilities
     "Microsoft.WSL", # Windows Subsystem for Linux
+    "Microsoft.NuGet", #.NET Package Manager
+    "MartiCliment.UniGetUI", # Windows Package Manager
 
     # Utilities
     "Adobe.CreativeCloud", # Adobe Creative Cloud --requires Crack
@@ -108,10 +109,10 @@ $WinGet = @(
 
 # Scoop Packages
 $Scoop = @(
-    @("main", "main/scoop-search"), # Scoop Search Plugin
-    @("nerd-fonts", "nerd-fonts/Hack-NF"), # Nerd Fonts --requires Starship
-    @("extras", "extras/driverstoreexplorer"), # Driver Store Explorer
-    @("extras", "extras/sysinternals") # Driver Store Explorer
+    @("main", "scoop-search"), # Scoop Search Plugin
+    @("nerd-fonts", "Hack-NF"), # Nerd Fonts --requires Starship
+    @("extras", "driverstoreexplorer"), # Driver Store Explorer
+    @("extras", "sysinternals") # Driver Store Explorer
 )
 
 # Chocolatey Packages
@@ -213,7 +214,8 @@ function Install-WinGetApp {
     New-SubStep
 
     # Check if the package is already installed
-    if (Get-AppPackage -Name $Package) {
+		$listApp = winget list
+    if (($listApp -match $Package) -or (Get-AppPackage -Name $Package)) {
         Write-Host "$Package already installed! Skipping..."
         New-Step
     }
@@ -392,9 +394,9 @@ Write-Host "Checking First Time Running..."
 New-Step
 $selection = Read-Host "Please type YES if this is the first time running the script else PRESS ENTER"
 $setup = $true
+$install = $true
 if ($selection.ToLower() -eq "") {
     $setup = $false
-    $install = $true
     $select = Read-Host "Please type YES if you want to install app else PRESS ENTER (Upgrade Only)"
     if ($select.ToLower() -eq "") {
         $install = $false
@@ -426,21 +428,13 @@ else {
 }
 
 if ($setup) {
-    ## Update Windows
-    New-Section
-    Write-Host "Updating Windows"
-    New-Step
-    Install-Module -Name PSWindowsUpdate -Force
-    New-Step
-    Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
-
     ## Configure Windows Settings
     New-Section
     Write-Host "Configuring Windows Settings..."
     #Configure ExecutionPolicy to Unrestricted for CurrentUser Scope
     New-Step
     Write-Host "Setting Execution Policy for Current Process..."
-    Set-ExecutionPolicy Bypass -Scope Process -Force
+    Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
     # Configure Power Plan
     New-Step
@@ -464,8 +458,7 @@ if ($setup) {
     & ([scriptblock]::Create((Invoke-RestMethod "https://debloat.raphi.re/"))) -Silent `
         -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
         -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
-        -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
-        -ExplorerToThisPC
+        -HideDupliDrive -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery -ExplorerToThisPC
     # Options
     # -Silent                       : Suppresses all interactive prompts, so the script will run without requiring any user input.
     # -RunDefaults	                : Run the script with the default settings.
@@ -501,11 +494,13 @@ if ($setup) {
 
     # Enable Windows Features
     New-Step
-    Write-Host "Enabling Windows Features..."
-    New-SubStep
-    Write-Host "Enabling Windows Sandbox..."
-    Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
-    New-SubStep
+    #Write-Host "Enabling Windows Features..."
+    #if ($MainPC) {
+	    #New-SubStep
+	    #Write-Host "Enabling Windows Sandbox..."
+	    #Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
+    #}
+		#New-SubStep
     Write-Host "Enabling Windows Subsystem for Linux..."
     Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
 
@@ -580,6 +575,9 @@ if ($install) {
         Install-WinGetApp -Package "$item"
     }
 
+    # Refresh envirnment variables
+    $Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
     # Install Scoop Packages
     New-Step
     Write-Host "Installing Scoop Packages with Buckets..."
@@ -626,11 +624,8 @@ if ($install) {
     New-Step
     Write-Host "Installing Pip Packages..."
 
-    Start-Sleep -Seconds 5
-    refreshenv
-    Start-Sleep -Seconds 5
-
     pip install --upgrade pip
+    python.exe -m pip install --upgrade pip
 
     foreach ($item in $Pip) {
         Install-PipPackage -Package "$item"
@@ -653,21 +648,6 @@ if ($setup) {
     }
 }
 
-# Upgrade Apps
-New-Section
-Write-Host "Upgrading Windows..."
-Get-WindowsUpdate -download -install -AcceptAll -IgnoreReboot -Verbose
-New-Step
-Write-Host "Upgrading WinGet Apps..."
-winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
-New-Step
-Write-Host "Upgrading Scoop Apps..."
-scoop update *
-New-Step
-Write-Host "Upgrading Chocolatey Apps..."
-choco feature enable -n=allowGlobalConfirmation
-choco feature disable checksumFiles
-choco upgrade all
 
 # ======================================================================================================================
 # ======================================================================================================================
@@ -677,10 +657,7 @@ choco upgrade all
 if ($setup) {
     ## Configure installed applications
     New-Section
-    Start-Sleep -Seconds 5
-    refreshenv
-    Start-Sleep -Seconds 5
-   
+
     # Configure Git
     New-Step
     Write-Host "Configuring Git..."
@@ -742,9 +719,26 @@ if ($setup) {
     Invoke-RestMethod https://get.activated.win | Invoke-Expression
 }
 New-Step
-Write-Host "Restart Computer"
-Start-Sleep -Seconds 10
-Exit 0
+
+# Upgrade Apps
+New-Section
+Write-Host "Upgrading WinGet Apps..."
+winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
+New-Step
+Write-Host "Upgrading Scoop Apps..."
+scoop update *
+New-Step
+Write-Host "Upgrading Chocolatey Apps..."
+choco feature enable -n=allowGlobalConfirmation
+choco feature disable checksumFiles
+choco upgrade all
+python.exe -m pip install --upgrade pip
+
+
+if($setup) {
+    Write-Host "Restart Computer"
+}
+Write-Host "Script Completed"
 # ======================================================================================================================
 # ======================================================================================================================
 # ======================================================================================================================
