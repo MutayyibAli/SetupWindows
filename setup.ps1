@@ -69,7 +69,7 @@ $WinGet = @(
     "LocalSend.LocalSend", # File Transfer Tool
     "Apple.iTunes", # iOS Device Manager
     "Apple.AppleMobileDeviceSupport", # iOS Device Support
-    "Logitech.Options", # Logitech Mouse & Keyboard Software
+    "Logitech.OptionsPlus", # Logitech Mouse & Keyboard Software
     "RustemMussabekov.Raindrop", # Bookmark Manager
     "Zoom.Zoom", # Video Conferencing Tool
     "TeamViewer.TeamViewer", # Remote Desktop
