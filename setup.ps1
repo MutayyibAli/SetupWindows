@@ -458,8 +458,7 @@ if ($setup) {
     & ([scriptblock]::Create((Invoke-RestMethod "https://debloat.raphi.re/"))) -Silent `
         -RemoveApps -RemoveCommApps -DisableDVR -ClearStart -DisableTelemetry -DisableSuggestions `
         -DisableDesktopSpotlight -DisableLockscreenTips -DisableBing -ShowHiddenFolders -ShowKnownFileExt `
-        -HideDupliDrive -TaskbarAlignLeft -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery `
-        -ExplorerToThisPC
+        -HideDupliDrive -ShowSearchIconTb -DisableStartRecommended -HideHome -HideGallery -ExplorerToThisPC
     # Options
     # -Silent                       : Suppresses all interactive prompts, so the script will run without requiring any user input.
     # -RunDefaults	                : Run the script with the default settings.
