@@ -648,19 +648,6 @@ if ($setup) {
     }
 }
 
-# Upgrade Apps
-New-Section
-Write-Host "Upgrading WinGet Apps..."
-winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
-New-Step
-Write-Host "Upgrading Scoop Apps..."
-scoop update *
-New-Step
-Write-Host "Upgrading Chocolatey Apps..."
-choco feature enable -n=allowGlobalConfirmation
-choco feature disable checksumFiles
-choco upgrade all
-python.exe -m pip install --upgrade pip
 
 # ======================================================================================================================
 # ======================================================================================================================
@@ -732,6 +719,21 @@ if ($setup) {
     Invoke-RestMethod https://get.activated.win | Invoke-Expression
 }
 New-Step
+
+# Upgrade Apps
+New-Section
+Write-Host "Upgrading WinGet Apps..."
+winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --force
+New-Step
+Write-Host "Upgrading Scoop Apps..."
+scoop update *
+New-Step
+Write-Host "Upgrading Chocolatey Apps..."
+choco feature enable -n=allowGlobalConfirmation
+choco feature disable checksumFiles
+choco upgrade all
+python.exe -m pip install --upgrade pip
+
 
 if($setup) {
     Write-Host "Restart Computer"
