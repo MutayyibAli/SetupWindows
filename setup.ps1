@@ -500,7 +500,7 @@ if ($setup) {
 	    #New-SubStep
 	    #Write-Host "Enabling Windows Sandbox..."
 	    #Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
-    }
+    #}
 		#New-SubStep
     Write-Host "Enabling Windows Subsystem for Linux..."
     Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
