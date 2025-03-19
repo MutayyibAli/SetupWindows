@@ -127,6 +127,7 @@ $Pip = @(
     "coverage", # Code Coverage Tool
     "pylint", # Code Linter
     "ruff", # Code Formatter
+    "mypy", # Static Type Checker
 
     # Data Science
     "numpy", # Numerical Python
