@@ -145,6 +145,7 @@ $Pip = @(
     "tensorflow", # Machine Learning Library
     "keras", # Machine Learning Library
     "transformers", # Hugging Face Transformers Library
+    "openai", # OpenAI Library
 
 
     # Web Development
