@@ -126,25 +126,36 @@ $Pip = @(
     # General Python
     "coverage", # Code Coverage Tool
     "pylint", # Code Linter
+    "ruff", # Code Formatter
 
     # Data Science
     "numpy", # Numerical Python
     "pandas", # Data Analysis Library
-
-    # Data Visualization
     "matplotlib", # Data Visualization Library
     "seaborn", # Data Visualization Library
     "plotly", # Data Visualization Library
 
     # Machine Learning
-    "scikit-learn", # Machine Learning Library
     "scipy", # Scientific Computing Library
+    "scikit-learn", # Machine Learning Library
+    "torch", # Pytorch-Machine Learning Library
+    "torchvision", # PyTorch for computer vision
+    "torchaudio", # PyTorch Audio Library
+    "tensorflow", # Machine Learning Library
+    "keras", # Machine Learning Library
+    "transformers", # Hugging Face Transformers Library
+
 
     # Web Development
     "flask", # Web App Library
     "django", # Web App Library
     "requests", # HTTP Library
     "beautifulsoup4" # Web Scraping Library
+
+    #Miscellaneous
+    "pillow", # Image Processing Library
+    "gradio", # Machine Learning Web App Library
+    "langchain", # Building Apps with LLMs
 )
 
 ## Apps for gaming PC
