@@ -79,6 +79,7 @@ $WinGet = @(
     "7zip.7zip", # Archive Tool
     "qBittorrent.qBittorrent", # Torrent Client
     "Rufus.Rufus", # USB Bootable Tool
+    "Wakatime.DesktopWakatime", # Time Tracking Tool
     "yt-dlp.yt-dlp", # Youtube Downloader
     "OBSProject.OBSStudio", # Screen Recorder
     "dotPDNLLC.paintdotnet", # Image Editor
@@ -214,7 +215,7 @@ function Install-WinGetApp {
     New-SubStep
 
     # Check if the package is already installed
-		$listApp = winget list
+    $listApp = winget list
     if (($listApp -match $Package) -or (Get-AppPackage -Name $Package)) {
         Write-Host "$Package already installed! Skipping..."
         New-Step
@@ -496,11 +497,11 @@ if ($setup) {
     New-Step
     #Write-Host "Enabling Windows Features..."
     #if ($MainPC) {
-	    #New-SubStep
-	    #Write-Host "Enabling Windows Sandbox..."
-	    #Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
+    #New-SubStep
+    #Write-Host "Enabling Windows Sandbox..."
+    #Enable-WindowsOptionalFeature -FeatureName "Containers-DisposableClientVM" -All -Online -NoRestart
     #}
-		#New-SubStep
+    #New-SubStep
     Write-Host "Enabling Windows Subsystem for Linux..."
     Enable-WindowsOptionalFeature -FeatureName "Microsoft-Windows-Subsystem-Linux" -All -Online -NoRestart
 
@@ -576,7 +577,7 @@ if ($install) {
     }
 
     # Refresh envirnment variables
-    $Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    $Env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
     # Install Scoop Packages
     New-Step
@@ -735,7 +736,7 @@ choco upgrade all
 python.exe -m pip install --upgrade pip
 
 
-if($setup) {
+if ($setup) {
     Write-Host "Restart Computer"
 }
 Write-Host "Script Completed"
