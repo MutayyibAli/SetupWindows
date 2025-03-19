@@ -149,6 +149,7 @@ $Pip = @(
 
     # Web Development
     "flask", # Web App Library
+    "flask_cors", # HTTPS for Flask
     "django", # Web App Library
     "requests", # HTTP Library
     "beautifulsoup4" # Web Scraping Library
