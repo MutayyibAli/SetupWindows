@@ -99,6 +99,8 @@ $WinGet = @(
     "chrisant996.Clink", # Command Prompt Enhancer
 
     # Programming Languages
+    "Python.Python.3.11", # Python Language
+    "Python.Python.3.12", # Python Language
     "Python.Python.3.13", # Python Language
     "Python.Launcher", # Python Launcher
     "MSYS2.MSYS2", # C++ Language
