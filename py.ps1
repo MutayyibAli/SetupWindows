@@ -36,6 +36,7 @@ $Pip = @(
     "pillow", # Image Processing Library
     "gradio", # Machine Learning Web App Library
     "langchain" # Building Apps with LLMs
+    "openpyxl" # Excel Library
 )
 
 # Print a line on the console for a new step
