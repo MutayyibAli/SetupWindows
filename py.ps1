@@ -33,6 +33,7 @@ $Pip = @(
     "beautifulsoup4" # Web Scraping Library
 
     #Miscellaneous
+    "jupyter", # Jupyter Notebook
     "pillow", # Image Processing Library
     "gradio", # Machine Learning Web App Library
     "langchain" # Building Apps with LLMs
