@@ -103,6 +103,7 @@ $WinGet = @(
     "Python.Python.3.12", # Python Language
     "Python.Python.3.13", # Python Language
     "Python.Launcher", # Python Launcher
+    "Anaconda.Anaconda3", # Anaconda Distribution
     "MSYS2.MSYS2", # C++ Language
 
     # Additional Tools for Development
